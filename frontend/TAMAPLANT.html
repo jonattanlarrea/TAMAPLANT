@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemelo Digital - Planta Inteligente</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+  <header>
+    <h1>TAMAPLANT</h1>
+  </header>
+
+  <main>
+    <section id="visualization-section">
+      <article id="threejs-container">
+        <div class="loading-message">
+          Preparando modelo 3D...
+          <br>
+          <small>
+            Aquí se cargará tu modelo de Blender
+          </small>
+        </div>
+        <canvas id="scene"></canvas>
+        
+        <!-- Hotspots de sensores (se posicionarán dinámicamente) -->
+        <div class="sensor-hotspot" style="top: 70%; left: 30%;" data-sensor="humidity" title="Sensor de Humedad"></div>
+        <div class="sensor-hotspot" style="top: 75%; left: 50%;" data-sensor="ph" title="Sensor de pH"></div>
+        <div class="sensor-hotspot" style="top: 72%; left: 70%;" data-sensor="temperature" title="Sensor de Temperatura"></div>
+      </article>
+    </section>
+
+    <section id="sensor-data-section">
+      <article id="sensor-panel">
+        <h2>Datos en Tiempo Real</h2>
+        
+        <div class="sensor-grid">
+          <article class="sensor" data-sensor="humidity">
+            <h3>
+              <svg class="sensor-icon" viewBox="0 0 24 24">
+                <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
+              </svg>
+              Humedad del Suelo
+            </h3>
+            <p>45%</p>
+            <div class="sensor-description">Nivel óptimo</div>
+            <span class="sensor-status">Normal</span>
+          </article>
+
+          <article class="sensor" data-sensor="ph">
+            <h3>
+              <svg class="sensor-icon" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M12 6v6l4 2"/>
+              </svg>
+              pH del Suelo
+            </h3>
+            <p>6.8</p>
+            <div class="sensor-description">Ligeramente ácido</div>
+            <span class="sensor-status">Normal</span>
+          </article>
+
+          <article class="sensor alert" data-sensor="temperature">
+            <h3>
+              <svg class="sensor-icon" viewBox="0 0 24 24">
+                <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/>
+              </svg>
+              Temperatura
+            </h3>
+            <p>28°C</p>
+            <div class="sensor-description">Por encima del rango</div>
+            <span class="sensor-status warning">Alerta</span>
+          </article>
+
+          <article class="sensor" data-sensor="light">
+            <h3>
+              <svg class="sensor-icon" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="5"/>
+                <line x1="12" y1="1" x2="12" y2="3"/>
+                <line x1="12" y1="21" x2="12" y2="23"/>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                <line x1="1" y1="12" x2="3" y2="12"/>
+                <line x1="21" y1="12" x2="23" y2="12"/>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+              </svg>
+              Luminosidad
+            </h3>
+            <p>850 lux</p>
+            <div class="sensor-description">Buena exposición</div>
+            <span class="sensor-status">Normal</span>
+          </article>
+        </div>
+
+        <div class="controls">
+          <button onclick="refreshData()">🔄 Actualizar Datos</button>
+          <button onclick="toggleAutoUpdate()">⏱️ Auto-actualizar</button>
+        </div>
+
+        <div>
+          <small>
+            <strong>Consejo:</strong> Haz clic en los puntos verdes sobre el modelo o en las tarjetas de sensores para ver detalles
+          </small>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <aside class="tooltip" id="tooltip">
+    <h4>Sensor</h4>
+    <p>Información del sensor</p>
+  </aside>
+
+  <footer>
+    <p>© 2025 Proyecto TAMAPLANT - Jonattan Larrea | Nelson Aravena</p>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script>
+    // Inicialización de Three.js
+    const container = document.getElementById('threejs-container');
+    const canvas = document.getElementById('scene');
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+    
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.setClearColor(0x121A14);
+    
+    // Iluminación
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+    scene.add(ambientLight);
+    
+    const directionalLight = new THREE.DirectionalLight(0x00FF9D, 0.8);
+    directionalLight.position.set(5, 10, 5);
+    scene.add(directionalLight);
+    
+    const pointLight = new THREE.PointLight(0x00FF9D, 0.5);
+    pointLight.position.set(-5, 5, -5);
+    scene.add(pointLight);
+    
+    // Crear geometría de ejemplo (maceta con planta simplificada)
+    // Base/Macetero
+    const potGeometry = new THREE.CylinderGeometry(1, 0.8, 1.5, 32);
+    const potMaterial = new THREE.MeshPhongMaterial({ color: 0x8B4513 });
+    const pot = new THREE.Mesh(potGeometry, potMaterial);
+    pot.position.y = 0;
+    scene.add(pot);
+    
+    // Tierra
+    const soilGeometry = new THREE.CylinderGeometry(0.95, 0.95, 0.2, 32);
+    const soilMaterial = new THREE.MeshPhongMaterial({ color: 0x4A2511 });
+    const soil = new THREE.Mesh(soilGeometry, soilMaterial);
+    soil.position.y = 0.75;
+    scene.add(soil);
+    
+    // Tallo de la planta
+    const stemGeometry = new THREE.CylinderGeometry(0.1, 0.15, 2, 16);
+    const stemMaterial = new THREE.MeshPhongMaterial({ color: 0x2E7D32 });
+    const stem = new THREE.Mesh(stemGeometry, stemMaterial);
+    stem.position.y = 1.85;
+    scene.add(stem);
+    
+    // Hojas (grupo)
+    const leafGroup = new THREE.Group();
+    for (let i = 0; i < 6; i++) {
+      const leafGeometry = new THREE.SphereGeometry(0.4, 16, 16);
+      leafGeometry.scale(1.5, 0.3, 1);
+      const leafMaterial = new THREE.MeshPhongMaterial({ color: 0x4CAF50 });
+      const leaf = new THREE.Mesh(leafGeometry, leafMaterial);
+      
+      const angle = (i / 6) * Math.PI * 2;
+      leaf.position.x = Math.cos(angle) * 0.6;
+      leaf.position.z = Math.sin(angle) * 0.6;
+      leaf.position.y = 2.5 + (i * 0.2);
+      leaf.rotation.z = angle;
+      
+      leafGroup.add(leaf);
+    }
+    scene.add(leafGroup);
+    
+    // Base de sensores
+    const baseGeometry = new THREE.BoxGeometry(2.5, 0.3, 2.5);
+    const baseMaterial = new THREE.MeshPhongMaterial({ color: 0x2E3D34 });
+    const base = new THREE.Mesh(baseGeometry, baseMaterial);
+    base.position.y = -1;
+    scene.add(base);
+    
+    // Sensores en la base
+    const sensorPositions = [
+      { x: -0.8, z: 0 },
+      { x: 0, z: 0 },
+      { x: 0.8, z: 0 }
+    ];
+    
+    sensorPositions.forEach((pos, i) => {
+      const sensorGeometry = new THREE.CylinderGeometry(0.15, 0.15, 0.4, 16);
+      const sensorMaterial = new THREE.MeshPhongMaterial({ 
+        color: 0x00FF9D,
+        emissive: 0x00FF9D,
+        emissiveIntensity: 0.3
+      });
+      const sensor = new THREE.Mesh(sensorGeometry, sensorMaterial);
+      sensor.position.set(pos.x, -0.6, pos.z);
+      scene.add(sensor);
+    });
+    
+    camera.position.z = 5;
+    camera.position.y = 2;
+    camera.lookAt(0, 1, 0);
+    
+    // Controles de rotación con el mouse
+    let isDragging = false;
+    let previousMousePosition = { x: 0, y: 0 };
+    let rotation = { x: 0, y: 0 };
+    
+    canvas.addEventListener('mousedown', (e) => {
+      isDragging = true;
+      previousMousePosition = { x: e.clientX, y: e.clientY };
+    });
+    
+    canvas.addEventListener('mousemove', (e) => {
+      if (isDragging) {
+        const deltaX = e.clientX - previousMousePosition.x;
+        const deltaY = e.clientY - previousMousePosition.y;
+        
+        rotation.y += deltaX * 0.01;
+        rotation.x += deltaY * 0.01;
+        
+        previousMousePosition = { x: e.clientX, y: e.clientY };
+      }
+    });
+    
+    canvas.addEventListener('mouseup', () => {
+      isDragging = false;
+    });
+    
+    // Touch para móviles
+    canvas.addEventListener('touchstart', (e) => {
+      isDragging = true;
+      previousMousePosition = { 
+        x: e.touches[0].clientX, 
+        y: e.touches[0].clientY 
+      };
+    });
+    
+    canvas.addEventListener('touchmove', (e) => {
+      if (isDragging) {
+        const deltaX = e.touches[0].clientX - previousMousePosition.x;
+        const deltaY = e.touches[0].clientY - previousMousePosition.y;
+        
+        rotation.y += deltaX * 0.01;
+        rotation.x += deltaY * 0.01;
+        
+        previousMousePosition = { 
+          x: e.touches[0].clientX, 
+          y: e.touches[0].clientY 
+        };
+      }
+    });
+    
+    canvas.addEventListener('touchend', () => {
+      isDragging = false;
+    });
+    
+    // Animación
+    function animate() {
+      requestAnimationFrame(animate);
+      
+      // Aplicar rotación
+      scene.rotation.y = rotation.y;
+      scene.rotation.x = Math.max(-Math.PI / 4, Math.min(Math.PI / 4, rotation.x));
+      
+      // Animación sutil de hojas
+      leafGroup.rotation.y += 0.002;
+      
+      renderer.render(scene, camera);
+    }
+    
+    animate();
+    
+    // Ocultar mensaje de carga después de inicializar
+    setTimeout(() => {
+      document.querySelector('.loading-message').style.display = 'none';
+    }, 1000);
+    
+    // Responsive
+    window.addEventListener('resize', () => {
+      const width = container.clientWidth;
+      const height = container.clientHeight;
+      
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+      renderer.setSize(width, height);
+    });
+    
+    // Interactividad de sensores
+    const sensors = document.querySelectorAll('.sensor');
+    const hotspots = document.querySelectorAll('.sensor-hotspot');
+    const tooltip = document.getElementById('tooltip');
+    
+    sensors.forEach(sensor => {
+      sensor.addEventListener('click', () => {
+        sensors.forEach(s => s.classList.remove('active'));
+        sensor.classList.add('active');
+        
+        // Simular actualización de datos
+        const value = sensor.querySelector('p');
+        value.style.animation = 'none';
+        setTimeout(() => {
+          value.style.animation = 'pulse 0.5s';
+        }, 10);
+      });
+    });
+    
+    hotspots.forEach(hotspot => {
+      hotspot.addEventListener('click', (e) => {
+        const sensorType = hotspot.dataset.sensor;
+        const sensorCard = document.querySelector(`.sensor[data-sensor="${sensorType}"]`);
+        
+        if (sensorCard) {
+          sensors.forEach(s => s.classList.remove('active'));
+          sensorCard.classList.add('active');
+          sensorCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+      });
+      
+      hotspot.addEventListener('mouseenter', (e) => {
+        const sensorType = hotspot.dataset.sensor;
+        const sensorCard = document.querySelector(`.sensor[data-sensor="${sensorType}"]`);
+        
+        if (sensorCard) {
+          const title = sensorCard.querySelector('h3').textContent.trim();
+          const value = sensorCard.querySelector('p').textContent;
+          
+          tooltip.querySelector('h4').textContent = title;
+          tooltip.querySelector('p').textContent = `Valor actual: ${value}`;
+          tooltip.classList.add('show');
+          
+          tooltip.style.left = e.pageX + 10 + 'px';
+          tooltip.style.top = e.pageY + 10 + 'px';
+        }
+      });
+      
+      hotspot.addEventListener('mouseleave', () => {
+        tooltip.classList.remove('show');
+      });
+      
+      hotspot.addEventListener('mousemove', (e) => {
+        tooltip.style.left = e.pageX + 10 + 'px';
+        tooltip.style.top = e.pageY + 10 + 'px';
+      });
+    });
+    
+    // Funciones de control
+    let autoUpdateInterval = null;
+    
+    function refreshData() {
+      // Simular actualización de datos (aquí conectarías con tu ESP32)
+      sensors.forEach(sensor => {
+        const value = sensor.querySelector('p');
+        value.style.opacity = '0.5';
+        
+        setTimeout(() => {
+          // Aquí harías fetch a tu API/ESP32
+          // Por ahora solo simulamos cambios
+          const currentValue = parseFloat(value.textContent);
+          const newValue = currentValue + (Math.random() - 0.5) * 2;
+          value.textContent = sensor.dataset.sensor === 'temperature' 
+            ? `${newValue.toFixed(1)}°C`
+            : sensor.dataset.sensor === 'ph'
+            ? newValue.toFixed(1)
+            : sensor.dataset.sensor === 'light'
+            ? `${Math.floor(newValue)} lux`
+            : `${Math.floor(newValue)}%`;
+          
+          value.style.opacity = '1';
+        }, 500);
+      });
+    }
+    
+    function toggleAutoUpdate() {
+      if (autoUpdateInterval) {
+        clearInterval(autoUpdateInterval);
+        autoUpdateInterval = null;
+        alert('Auto-actualización desactivada');
+      } else {
+        autoUpdateInterval = setInterval(refreshData, 5000);
+        alert('Auto-actualización activada (cada 5 segundos)');
+      }
+    }
+  </script>
+</body>
+</html>
