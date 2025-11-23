@@ -1,6 +1,15 @@
 // Esperar a que THREE esté disponible
 window.addEventListener('DOMContentLoaded', () => {
   initScene();
+  setupScrollBehavior();
+  setupZoomControls();
+  setupNotificationSystem();
+
+  if (typeof setupModelButtons === "function") {
+    setupModelButtons();
+  } else {
+    console.error("setupModelButtons no está definido. ¿Se cargó models.js?");
+  }
 });
 
 function initScene() {
@@ -31,21 +40,20 @@ function initScene() {
   pointLight.position.set(-5, 5, -5);
   scene.add(pointLight);
 
-  // Agregar luz trasera
   const backLight = new THREE.DirectionalLight(0xffffff, 0.5);
   backLight.position.set(-5, 5, -5);
   scene.add(backLight);
 
-  //
-  // ---------------------------------------------------
-  //     ✅ CARGAR MODELO GLTF
-  // ---------------------------------------------------
-  //
-
+  // Inicializar variables globales
   let loadedPlant = null;
   const loadingMessage = document.querySelector('.loading-message');
+  
+  window.loadedPlant = loadedPlant;
+  window.loadingMessage = loadingMessage;
+  window.scene = scene;
+  window.camera = camera;
+  window.renderer = renderer;
 
-  // Verificar si GLTFLoader está disponible
   if (typeof THREE.GLTFLoader === 'undefined') {
     console.error('GLTFLoader no está cargado');
     loadingMessage.innerHTML = `
@@ -57,86 +65,33 @@ function initScene() {
     return;
   }
 
-  const loader = new THREE.GLTFLoader();
+  loadingMessage.innerHTML = `
+    📁 Sin modelo cargado
+    <br>
+    <small style="color: #A8B2A0; margin-top: 0.5rem; display: block;">
+      Usa el botón "📁 Cargar Modelo" para comenzar
+    </small>
+  `;
+  loadingMessage.style.display = 'none';
 
-  loader.load(
-    'assets/models/potted_plant_01_4k.gltf', // Ruta corregida
-    function (gltf) {
-      loadedPlant = gltf.scene;
-
-      // Ajustar posición y escala
-      loadedPlant.position.set(0, -1, 0);
-      loadedPlant.scale.set(2.2, 2.2, 2.2);
-
-      scene.add(loadedPlant);
-
-      // Ocultar mensaje de carga
-      loadingMessage.style.display = 'none';
-
-      console.log("✅ Modelo GLTF cargado correctamente");
-    },
-    function (xhr) {
-      const percent = ((xhr.loaded / xhr.total) * 100).toFixed(0);
-      console.log(`Cargando modelo: ${percent}%`);
-      loadingMessage.innerHTML = `
-        Cargando modelo 3D... ${percent}%
-        <br>
-        <small style="color: #A8B2A0; margin-top: 0.5rem; display: block;">
-          Por favor espera...
-        </small>
-      `;
-    },
-    function (error) {
-      console.error("❌ Error cargando modelo GLTF:", error);
-      loadingMessage.innerHTML = `
-        ❌ Error al cargar el modelo
-        <br>
-        <small style="color: #F2C94C; margin-top: 0.5rem; display: block;">
-          Verifica que el archivo existe en: assets/models/potted_plant_01_4k.gltf
-        </small>
-      `;
-    }
-  );
-
-  //
-  // ---------------------------------------------------
-  //     BASE Y SENSORES
-  // ---------------------------------------------------
-  //
-
-  const baseGeometry = new THREE.BoxGeometry(2.5, 0.3, 2.5);
-  const baseMaterial = new THREE.MeshPhongMaterial({ color: 0x2E3D34 });
+  // Base
+  const baseGeometry = new THREE.BoxGeometry(3, 0.3, 3);
+  const baseMaterial = new THREE.MeshPhongMaterial({ 
+    color: 0x2E3D34,
+    shininess: 30
+  });
   const base = new THREE.Mesh(baseGeometry, baseMaterial);
   base.position.y = -1.5;
   scene.add(base);
 
-  const sensorPositions = [
-    { x: -0.8, z: 0 },
-    { x: 0, z: 0 },
-    { x: 0.8, z: 0 }
-  ];
-
-  sensorPositions.forEach((pos) => {
-    const sensorGeometry = new THREE.CylinderGeometry(0.15, 0.15, 0.4, 16);
-    const sensorMaterial = new THREE.MeshPhongMaterial({
-      color: 0x00FF9D,
-      emissive: 0x00FF9D,
-      emissiveIntensity: 0.3
-    });
-    const sensor = new THREE.Mesh(sensorGeometry, sensorMaterial);
-    sensor.position.set(pos.x, -1.2, pos.z);
-    scene.add(sensor);
+  console.log("📦 Objetos en la escena:", scene.children.length);
+  scene.children.forEach((obj, index) => {
+    console.log(`  ${index}: ${obj.type} - ${obj.geometry?.type || 'sin geometría'}`);
   });
 
-  //
-  // ---------------------------------------------------
-  //     CONTROLES DE CÁMARA
-  // ---------------------------------------------------
-  //
-
-  camera.position.z = 5;
-  camera.position.y = 2;
-  camera.lookAt(0, 1, 0);
+  // Controles de cámara
+  camera.position.set(0, 1, 6);
+  camera.lookAt(0, 0, 0);
 
   let isDragging = false;
   let previousMousePosition = { x: 0, y: 0 };
@@ -162,7 +117,6 @@ function initScene() {
   canvas.addEventListener('mouseup', () => isDragging = false);
   canvas.addEventListener('mouseleave', () => isDragging = false);
 
-  // Touch móvil
   canvas.addEventListener('touchstart', e => {
     isDragging = true;
     previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
@@ -185,12 +139,21 @@ function initScene() {
 
   canvas.addEventListener('touchend', () => isDragging = false);
 
-  //
-  // ---------------------------------------------------
-  //     ANIMACIÓN
-  // ---------------------------------------------------
-  //
+  // Zoom con scroll del mouse
+  canvas.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    
+    const zoomSpeed = 0.1;
+    const delta = e.deltaY > 0 ? 1 : -1;
+    
+    const newZ = camera.position.z + delta * zoomSpeed;
+    if (newZ >= 2 && newZ <= 15) {
+      camera.position.z = newZ;
+      console.log(`🔍 Zoom: ${camera.position.z.toFixed(2)}`);
+    }
+  }, { passive: false });
 
+  // Animación
   function animate() {
     requestAnimationFrame(animate);
 
@@ -201,12 +164,7 @@ function initScene() {
   }
   animate();
 
-  //
-  // ---------------------------------------------------
-  //     RESPONSIVE
-  // ---------------------------------------------------
-  //
-
+  // Responsive
   window.addEventListener('resize', () => {
     const width = container.clientWidth;
     const height = container.clientHeight;
@@ -214,15 +172,31 @@ function initScene() {
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
     renderer.setSize(width, height);
+    
+    console.log(`📐 Ventana redimensionada: ${width}x${height}`);
   });
+
+  // Observer para detectar cambios de tamaño del contenedor
+  if (typeof ResizeObserver !== 'undefined') {
+    const resizeObserver = new ResizeObserver(entries => {
+      for (let entry of entries) {
+        const width = entry.contentRect.width;
+        const height = entry.contentRect.height;
+        
+        if (width > 0 && height > 0) {
+          camera.aspect = width / height;
+          camera.updateProjectionMatrix();
+          renderer.setSize(width, height);
+          console.log(`📐 Contenedor redimensionado: ${width}x${height}`);
+        }
+      }
+    });
+    
+    resizeObserver.observe(container);
+  }
 }
 
-//
-// ---------------------------------------------------
-//     INTERACTIVIDAD SENSORES
-// ---------------------------------------------------
-//
-
+// Interactividad sensores
 const sensors = document.querySelectorAll('.sensor');
 const hotspots = document.querySelectorAll('.sensor-hotspot');
 const tooltip = document.getElementById('tooltip');
@@ -278,12 +252,7 @@ hotspots.forEach(hotspot => {
   });
 });
 
-//
-// ---------------------------------------------------
-//     WEBSOCKET ESP32
-// ---------------------------------------------------
-//
-
+// WebSocket ESP32
 let ws = null;
 let reconnectInterval = null;
 const WS_URL = 'ws://192.168.1.100:81';
@@ -438,22 +407,363 @@ function updateSensorData(data) {
 function refreshData() {
   if (ws && ws.readyState === WebSocket.OPEN) {
     ws.send(JSON.stringify({ command: 'refresh' }));
+    if (typeof showNotification === 'function') {
+      showNotification(
+        'Actualizando datos',
+        'Solicitando datos actualizados del ESP32...',
+        'info',
+        3000
+      );
+    }
     console.log('Solicitando actualización de datos...');
   } else {
-    alert('WebSocket no conectado. Intentando reconectar...');
+    if (typeof showNotification === 'function') {
+      showNotification(
+        'Sin conexión',
+        'WebSocket no conectado. Intentando reconectar...',
+        'warning'
+      );
+    }
     connectWebSocket();
   }
 }
 
 function toggleAutoUpdate() {
   console.log('Toggle auto-actualización');
-  // Implementar lógica de auto-actualización
 }
 
-// Iniciar WebSocket
 connectWebSocket();
 
 window.addEventListener('beforeunload', () => {
   if (ws) ws.close();
   if (reconnectInterval) clearInterval(reconnectInterval);
 });
+
+// Comportamiento de scroll - ocultar header
+function setupScrollBehavior() {
+  const header = document.querySelector('header');
+  const main = document.querySelector('main');
+  const scrollIndicator = document.getElementById('scrollIndicator');
+  const container = document.getElementById('threejs-container');
+  
+  let lastScrollTop = 0;
+  let isHeaderHidden = false;
+  
+  function resizeCanvas() {
+    if (!window.camera || !window.renderer || !container) return;
+    
+    const width = container.clientWidth;
+    const height = container.clientHeight;
+    
+    window.camera.aspect = width / height;
+    window.camera.updateProjectionMatrix();
+    window.renderer.setSize(width, height);
+    
+    console.log(`📐 Canvas redimensionado: ${width}x${height}`);
+  }
+  
+  if (scrollIndicator) {
+    scrollIndicator.addEventListener('click', () => {
+      if (!isHeaderHidden) {
+        header.classList.add('hidden');
+        main.classList.add('expanded');
+        isHeaderHidden = true;
+        scrollIndicator.classList.add('hidden');
+        
+        setTimeout(resizeCanvas, 450);
+      } else {
+        header.classList.remove('hidden');
+        main.classList.remove('expanded');
+        isHeaderHidden = false;
+        scrollIndicator.classList.remove('hidden');
+        
+        setTimeout(resizeCanvas, 450);
+      }
+    });
+  }
+  
+  window.addEventListener('scroll', () => {
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    
+    if (scrollTop > 50 && !isHeaderHidden) {
+      header.classList.add('hidden');
+      main.classList.add('expanded');
+      isHeaderHidden = true;
+      if (scrollIndicator) scrollIndicator.classList.add('hidden');
+      
+      setTimeout(resizeCanvas, 450);
+      console.log('🔼 Header oculto - Vista expandida activada');
+    } 
+    else if (scrollTop <= 50 && isHeaderHidden) {
+      header.classList.remove('hidden');
+      main.classList.remove('expanded');
+      isHeaderHidden = false;
+      if (scrollIndicator) scrollIndicator.classList.remove('hidden');
+      
+      setTimeout(resizeCanvas, 450);
+      console.log('🔽 Header visible - Vista normal');
+    }
+    
+    lastScrollTop = scrollTop;
+  });
+  
+  let scrollAttempts = 0;
+  window.addEventListener('wheel', (e) => {
+    if (e.deltaY > 0 && !isHeaderHidden) {
+      scrollAttempts++;
+      if (scrollAttempts >= 2) {
+        header.classList.add('hidden');
+        main.classList.add('expanded');
+        isHeaderHidden = true;
+        if (scrollIndicator) scrollIndicator.classList.add('hidden');
+        scrollAttempts = 0;
+        
+        setTimeout(resizeCanvas, 450);
+        console.log('🔼 Header oculto por scroll de rueda');
+      }
+    }
+    else if (e.deltaY < 0 && isHeaderHidden) {
+      scrollAttempts++;
+      if (scrollAttempts >= 2) {
+        header.classList.remove('hidden');
+        main.classList.remove('expanded');
+        isHeaderHidden = false;
+        if (scrollIndicator) scrollIndicator.classList.remove('hidden');
+        scrollAttempts = 0;
+        
+        setTimeout(resizeCanvas, 450);
+        console.log('🔽 Header visible por scroll de rueda');
+      }
+    }
+  });
+  
+  console.log('✅ Comportamiento de scroll configurado');
+}
+
+// Controles de zoom con botones
+function setupZoomControls() {
+  const zoomInBtn = document.getElementById('zoomInBtn');
+  const zoomOutBtn = document.getElementById('zoomOutBtn');
+  const zoomIndicator = document.getElementById('zoomIndicator');
+  
+  if (!zoomInBtn || !zoomOutBtn) {
+    console.warn('⚠️ Botones de zoom no encontrados');
+    return;
+  }
+
+  const minZoom = 2;
+  const maxZoom = 15;
+  const zoomStep = 0.5;
+  let indicatorTimeout = null;
+
+  function updateZoomIndicator() {
+    if (!window.camera || !zoomIndicator) return;
+    
+    const currentZoom = window.camera.position.z;
+    const zoomPercent = Math.round(((maxZoom - currentZoom) / (maxZoom - minZoom)) * 100);
+    
+    zoomIndicator.textContent = `${zoomPercent}%`;
+    zoomIndicator.classList.add('show');
+    
+    clearTimeout(indicatorTimeout);
+    indicatorTimeout = setTimeout(() => {
+      zoomIndicator.classList.remove('show');
+    }, 1500);
+  }
+
+  function performZoom(direction) {
+    if (!window.camera) return;
+    
+    const delta = direction === 'in' ? -zoomStep : zoomStep;
+    const newZ = window.camera.position.z + delta;
+    
+    if (newZ >= minZoom && newZ <= maxZoom) {
+      window.camera.position.z = newZ;
+      updateZoomIndicator();
+      console.log(`🔍 Zoom ${direction === 'in' ? 'IN' : 'OUT'}: ${newZ.toFixed(2)}`);
+    } else {
+      console.log(`⚠️ Límite de zoom alcanzado`);
+    }
+  }
+
+  zoomInBtn.addEventListener('click', () => performZoom('in'));
+  zoomOutBtn.addEventListener('click', () => performZoom('out'));
+
+  let zoomInterval = null;
+
+  zoomInBtn.addEventListener('mousedown', () => {
+    zoomInterval = setInterval(() => performZoom('in'), 100);
+  });
+
+  zoomOutBtn.addEventListener('mousedown', () => {
+    zoomInterval = setInterval(() => performZoom('out'), 100);
+  });
+
+  ['mouseup', 'mouseleave'].forEach(event => {
+    zoomInBtn.addEventListener(event, () => {
+      if (zoomInterval) {
+        clearInterval(zoomInterval);
+        zoomInterval = null;
+      }
+    });
+
+    zoomOutBtn.addEventListener(event, () => {
+      if (zoomInterval) {
+        clearInterval(zoomInterval);
+        zoomInterval = null;
+      }
+    });
+  });
+
+  zoomInBtn.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    performZoom('in');
+    zoomInterval = setInterval(() => performZoom('in'), 100);
+  });
+
+  zoomOutBtn.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    performZoom('out');
+    zoomInterval = setInterval(() => performZoom('out'), 100);
+  });
+
+  ['touchend', 'touchcancel'].forEach(event => {
+    zoomInBtn.addEventListener(event, () => {
+      if (zoomInterval) {
+        clearInterval(zoomInterval);
+        zoomInterval = null;
+      }
+    });
+
+    zoomOutBtn.addEventListener(event, () => {
+      if (zoomInterval) {
+        clearInterval(zoomInterval);
+        zoomInterval = null;
+      }
+    });
+  });
+
+  console.log('✅ Controles de zoom configurados');
+}
+
+// Sistema de notificaciones personalizado
+function setupNotificationSystem() {
+  if (!document.getElementById('notificationContainer')) {
+    const container = document.createElement('div');
+    container.id = 'notificationContainer';
+    container.className = 'notification-container';
+    document.body.appendChild(container);
+  }
+  
+  console.log('✅ Sistema de notificaciones configurado');
+}
+
+window.showNotification = function(title, message, type = 'info', duration = 5000) {
+  const container = document.getElementById('notificationContainer');
+  if (!container) return;
+  
+  const icons = {
+    success: '✅',
+    error: '❌',
+    warning: '⚠️',
+    info: 'ℹ️'
+  };
+  
+  const notification = document.createElement('div');
+  notification.className = `notification ${type}`;
+  notification.innerHTML = `
+    <div class="notification-content">
+      <div class="notification-icon">${icons[type] || icons.info}</div>
+      <div class="notification-text">
+        <div class="notification-title">${title}</div>
+        <div class="notification-message">${message}</div>
+      </div>
+    </div>
+    <button class="notification-close">×</button>
+    <div class="notification-progress"></div>
+  `;
+  
+  container.appendChild(notification);
+  
+  const closeBtn = notification.querySelector('.notification-close');
+  closeBtn.addEventListener('click', () => {
+    removeNotification(notification);
+  });
+  
+  if (duration > 0) {
+    setTimeout(() => {
+      removeNotification(notification);
+    }, duration);
+  }
+  
+  return notification;
+};
+
+function removeNotification(notification) {
+  notification.style.animation = 'slideOutRight 0.4s ease-in';
+  setTimeout(() => {
+    if (notification.parentElement) {
+      notification.parentElement.removeChild(notification);
+    }
+  }, 400);
+}
+
+window.showConfirmModal = function(title, message, onConfirm, onCancel) {
+  return new Promise((resolve) => {
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    
+    overlay.innerHTML = `
+      <div class="modal-content">
+        <div class="modal-header">
+          <div class="modal-icon">⚠️</div>
+          <div class="modal-title">${title}</div>
+        </div>
+        <div class="modal-message">${message}</div>
+        <div class="modal-buttons">
+          <button class="modal-btn modal-btn-cancel">Cancelar</button>
+          <button class="modal-btn modal-btn-confirm">Confirmar</button>
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(overlay);
+    
+    const confirmBtn = overlay.querySelector('.modal-btn-confirm');
+    const cancelBtn = overlay.querySelector('.modal-btn-cancel');
+    
+    function closeModal(confirmed) {
+      overlay.style.animation = 'fadeOut 0.3s ease';
+      setTimeout(() => {
+        if (overlay.parentElement) {
+          overlay.parentElement.removeChild(overlay);
+        }
+      }, 300);
+      
+      resolve(confirmed);
+      
+      if (confirmed && onConfirm) {
+        onConfirm();
+      } else if (!confirmed && onCancel) {
+        onCancel();
+      }
+    }
+    
+    confirmBtn.addEventListener('click', () => closeModal(true));
+    cancelBtn.addEventListener('click', () => closeModal(false));
+    
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) {
+        closeModal(false);
+      }
+    });
+    
+    const escapeHandler = (e) => {
+      if (e.key === 'Escape') {
+        closeModal(false);
+        document.removeEventListener('keydown', escapeHandler);
+      }
+    };
+    document.addEventListener('keydown', escapeHandler);
+  });
+};
