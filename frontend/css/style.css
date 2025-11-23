@@ -37,10 +37,10 @@ header.hidden {
 }
 
 @font-face {
-  font-family: 'DarkFuture';
-  src: url('/frontend/assets/fonts/Dark\ Future\ Italic.ttf') format('truetype');
+  font-family: "DarkFutureItalic";
+  src: url("../assets/fonts/DarkFutureItalic.woff2") format("woff2");
   font-weight: normal;
-  font-style: normal;
+  font-style: italic;
 }
 
 header h1 {
@@ -821,3 +821,4 @@ footer {
     opacity: 1;
   }
 }
+
