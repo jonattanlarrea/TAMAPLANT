@@ -38,9 +38,11 @@ header.hidden {
 
 @font-face {
   font-family: "DarkFuture";
-  src: url("../assets/fonts/DarkFutureItalic.woff2") format("woff2");
+  src: url("../assets/fonts/Dark Future Italic.woff2") format("woff2"),
+       url("../assets/fonts/Dark Future Italic.ttf") format("truetype");
   font-weight: normal;
   font-style: italic;
+  font-display: swap;
 }
 
 header h1 {
