@@ -48,7 +48,7 @@ function initScene() {
   // Inicializar variables globales
   let loadedPlant = null;
   const loadingMessage = document.querySelector('.loading-message');
-  
+
   window.loadedPlant = loadedPlant;
   window.loadingMessage = loadingMessage;
   window.scene = scene;
@@ -77,7 +77,7 @@ function initScene() {
 
   // Base
   const baseGeometry = new THREE.BoxGeometry(3, 0.3, 3);
-  const baseMaterial = new THREE.MeshPhongMaterial({ 
+  const baseMaterial = new THREE.MeshPhongMaterial({
     color: 0x2E3D34,
     shininess: 30
   });
@@ -143,10 +143,10 @@ function initScene() {
   // Zoom con scroll del mouse
   canvas.addEventListener('wheel', (e) => {
     e.preventDefault();
-    
+
     const zoomSpeed = 0.1;
     const delta = e.deltaY > 0 ? 1 : -1;
-    
+
     const newZ = camera.position.z + delta * zoomSpeed;
     if (newZ >= 2 && newZ <= 15) {
       camera.position.z = newZ;
@@ -173,7 +173,7 @@ function initScene() {
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
     renderer.setSize(width, height);
-    
+
     console.log(`📐 Ventana redimensionada: ${width}x${height}`);
   });
 
@@ -183,7 +183,7 @@ function initScene() {
       for (let entry of entries) {
         const width = entry.contentRect.width;
         const height = entry.contentRect.height;
-        
+
         if (width > 0 && height > 0) {
           camera.aspect = width / height;
           camera.updateProjectionMatrix();
@@ -192,7 +192,7 @@ function initScene() {
         }
       }
     });
-    
+
     resizeObserver.observe(container);
   }
 }
@@ -256,7 +256,7 @@ hotspots.forEach(hotspot => {
 // WebSocket ESP32
 let ws = null;
 let reconnectInterval = null;
-const WS_URL = 'ws://192.168.1.100:81';
+const WS_URL = 'ws://tamapla1.sytes.net:8080';
 
 const connectionStatus = document.createElement('div');
 connectionStatus.style.cssText = `
@@ -296,6 +296,16 @@ function updateConnectionStatus(status, message) {
   }
 }
 
+function normalizeSensorData(raw) {
+  return {
+    humidity: raw.soil_moisture,           // humedad del suelo
+    light: raw.lux,                        // luminosidad
+    temperature: raw.temperature_ds18b20,  // temperatura real
+    // ph NO VIENE en el JSON → queda sin actualizar
+  };
+}
+
+
 function connectWebSocket() {
   updateConnectionStatus('connecting', 'Conectando...');
 
@@ -314,29 +324,30 @@ function connectWebSocket() {
 
     ws.onmessage = (event) => {
       try {
-        const data = JSON.parse(event.data);
-        updateSensorData(data);
-      } catch (error) {
-        console.error('Error parseando JSON:', error);
+        const raw = JSON.parse(event.data);
+        const normalized = normalizeSensorData(raw);
+        updateSensorData(normalized);
+      } catch (e) {
+        console.error("Error procesando JSON:", e);
       }
     };
 
-    ws.onerror = () => {
-      updateConnectionStatus('error', 'Error de conexión');
-    };
+  ws.onerror = () => {
+    updateConnectionStatus('error', 'Error de conexión');
+  };
 
-    ws.onclose = () => {
-      updateConnectionStatus('error', 'Desconectado');
+  ws.onclose = () => {
+    updateConnectionStatus('error', 'Desconectado');
 
-      if (!reconnectInterval) {
-        reconnectInterval = setInterval(() => {
-          connectWebSocket();
-        }, 5000);
-      }
-    };
-  } catch (error) {
-    updateConnectionStatus('error', 'No se pudo conectar');
-  }
+    if (!reconnectInterval) {
+      reconnectInterval = setInterval(() => {
+        connectWebSocket();
+      }, 5000);
+    }
+  };
+} catch (error) {
+  updateConnectionStatus('error', 'No se pudo conectar');
+}
 }
 
 function updateSensorData(data) {
@@ -404,6 +415,8 @@ function updateSensorData(data) {
   });
 }
 
+
+
 // Funciones globales para botones
 function refreshData() {
   if (ws && ws.readyState === WebSocket.OPEN) {
@@ -446,23 +459,23 @@ function setupScrollBehavior() {
   const main = document.querySelector('main');
   const scrollIndicator = document.getElementById('scrollIndicator');
   const container = document.getElementById('threejs-container');
-  
+
   let lastScrollTop = 0;
   let isHeaderHidden = false;
-  
+
   function resizeCanvas() {
     if (!window.camera || !window.renderer || !container) return;
-    
+
     const width = container.clientWidth;
     const height = container.clientHeight;
-    
+
     window.camera.aspect = width / height;
     window.camera.updateProjectionMatrix();
     window.renderer.setSize(width, height);
-    
+
     console.log(`📐 Canvas redimensionado: ${width}x${height}`);
   }
-  
+
   if (scrollIndicator) {
     scrollIndicator.addEventListener('click', () => {
       if (!isHeaderHidden) {
@@ -470,44 +483,44 @@ function setupScrollBehavior() {
         main.classList.add('expanded');
         isHeaderHidden = true;
         scrollIndicator.classList.add('hidden');
-        
+
         setTimeout(resizeCanvas, 450);
       } else {
         header.classList.remove('hidden');
         main.classList.remove('expanded');
         isHeaderHidden = false;
         scrollIndicator.classList.remove('hidden');
-        
+
         setTimeout(resizeCanvas, 450);
       }
     });
   }
-  
+
   window.addEventListener('scroll', () => {
     const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-    
+
     if (scrollTop > 50 && !isHeaderHidden) {
       header.classList.add('hidden');
       main.classList.add('expanded');
       isHeaderHidden = true;
       if (scrollIndicator) scrollIndicator.classList.add('hidden');
-      
+
       setTimeout(resizeCanvas, 450);
       console.log('🔼 Header oculto - Vista expandida activada');
-    } 
+    }
     else if (scrollTop <= 50 && isHeaderHidden) {
       header.classList.remove('hidden');
       main.classList.remove('expanded');
       isHeaderHidden = false;
       if (scrollIndicator) scrollIndicator.classList.remove('hidden');
-      
+
       setTimeout(resizeCanvas, 450);
       console.log('🔽 Header visible - Vista normal');
     }
-    
+
     lastScrollTop = scrollTop;
   });
-  
+
   let scrollAttempts = 0;
   window.addEventListener('wheel', (e) => {
     if (e.deltaY > 0 && !isHeaderHidden) {
@@ -518,7 +531,7 @@ function setupScrollBehavior() {
         isHeaderHidden = true;
         if (scrollIndicator) scrollIndicator.classList.add('hidden');
         scrollAttempts = 0;
-        
+
         setTimeout(resizeCanvas, 450);
         console.log('🔼 Header oculto por scroll de rueda');
       }
@@ -531,13 +544,13 @@ function setupScrollBehavior() {
         isHeaderHidden = false;
         if (scrollIndicator) scrollIndicator.classList.remove('hidden');
         scrollAttempts = 0;
-        
+
         setTimeout(resizeCanvas, 450);
         console.log('🔽 Header visible por scroll de rueda');
       }
     }
   });
-  
+
   console.log('✅ Comportamiento de scroll configurado');
 }
 
@@ -546,7 +559,7 @@ function setupZoomControls() {
   const zoomInBtn = document.getElementById('zoomInBtn');
   const zoomOutBtn = document.getElementById('zoomOutBtn');
   const zoomIndicator = document.getElementById('zoomIndicator');
-  
+
   if (!zoomInBtn || !zoomOutBtn) {
     console.warn('⚠️ Botones de zoom no encontrados');
     return;
@@ -559,13 +572,13 @@ function setupZoomControls() {
 
   function updateZoomIndicator() {
     if (!window.camera || !zoomIndicator) return;
-    
+
     const currentZoom = window.camera.position.z;
     const zoomPercent = Math.round(((maxZoom - currentZoom) / (maxZoom - minZoom)) * 100);
-    
+
     zoomIndicator.textContent = `${zoomPercent}%`;
     zoomIndicator.classList.add('show');
-    
+
     clearTimeout(indicatorTimeout);
     indicatorTimeout = setTimeout(() => {
       zoomIndicator.classList.remove('show');
@@ -574,10 +587,10 @@ function setupZoomControls() {
 
   function performZoom(direction) {
     if (!window.camera) return;
-    
+
     const delta = direction === 'in' ? -zoomStep : zoomStep;
     const newZ = window.camera.position.z + delta;
-    
+
     if (newZ >= minZoom && newZ <= maxZoom) {
       window.camera.position.z = newZ;
       updateZoomIndicator();
@@ -651,7 +664,7 @@ function setupZoomControls() {
 function setupFullscreenControls() {
   const fullscreenBtn = document.getElementById('fullscreenBtn');
   const container = document.getElementById('threejs-container');
-  
+
   if (!fullscreenBtn || !container) {
     console.warn('⚠️ Botón de pantalla completa no encontrado');
     return;
@@ -670,21 +683,21 @@ function setupFullscreenControls() {
   function enterFullscreen() {
     container.classList.add('fullscreen');
     document.body.classList.add('fullscreen-active');
-    
+
     fullscreenBtn.innerHTML = '✕';
     fullscreenBtn.title = 'Salir de pantalla completa';
-    
+
     isFullscreen = true;
 
     setTimeout(() => {
       if (window.camera && window.renderer && container) {
         const width = container.clientWidth;
         const height = container.clientHeight;
-        
+
         window.camera.aspect = width / height;
         window.camera.updateProjectionMatrix();
         window.renderer.setSize(width, height);
-        
+
         console.log(`📐 Pantalla completa activada: ${width}x${height}`);
       }
     }, 100);
@@ -693,21 +706,21 @@ function setupFullscreenControls() {
   function exitFullscreen() {
     container.classList.remove('fullscreen');
     document.body.classList.remove('fullscreen-active');
-    
+
     fullscreenBtn.innerHTML = '⛶';
     fullscreenBtn.title = 'Pantalla completa';
-    
+
     isFullscreen = false;
 
     setTimeout(() => {
       if (window.camera && window.renderer && container) {
         const width = container.clientWidth;
         const height = container.clientHeight;
-        
+
         window.camera.aspect = width / height;
         window.camera.updateProjectionMatrix();
         window.renderer.setSize(width, height);
-        
+
         console.log(`📐 Pantalla completa desactivada: ${width}x${height}`);
       }
     }, 100);
@@ -730,21 +743,21 @@ function setupNotificationSystem() {
     container.className = 'notification-container';
     document.body.appendChild(container);
   }
-  
+
   console.log('✅ Sistema de notificaciones configurado');
 }
 
-window.showNotification = function(title, message, type = 'info', duration = 5000) {
+window.showNotification = function (title, message, type = 'info', duration = 5000) {
   const container = document.getElementById('notificationContainer');
   if (!container) return;
-  
+
   const icons = {
     success: '✅',
     error: '❌',
     warning: '⚠️',
     info: 'ℹ️'
   };
-  
+
   const notification = document.createElement('div');
   notification.className = `notification ${type}`;
   notification.innerHTML = `
@@ -758,20 +771,20 @@ window.showNotification = function(title, message, type = 'info', duration = 500
     <button class="notification-close">×</button>
     <div class="notification-progress"></div>
   `;
-  
+
   container.appendChild(notification);
-  
+
   const closeBtn = notification.querySelector('.notification-close');
   closeBtn.addEventListener('click', () => {
     removeNotification(notification);
   });
-  
+
   if (duration > 0) {
     setTimeout(() => {
       removeNotification(notification);
     }, duration);
   }
-  
+
   return notification;
 };
 
@@ -784,11 +797,11 @@ function removeNotification(notification) {
   }, 400);
 }
 
-window.showConfirmModal = function(title, message, onConfirm, onCancel) {
+window.showConfirmModal = function (title, message, onConfirm, onCancel) {
   return new Promise((resolve) => {
     const overlay = document.createElement('div');
     overlay.className = 'modal-overlay';
-    
+
     overlay.innerHTML = `
       <div class="modal-content">
         <div class="modal-header">
@@ -802,12 +815,12 @@ window.showConfirmModal = function(title, message, onConfirm, onCancel) {
         </div>
       </div>
     `;
-    
+
     document.body.appendChild(overlay);
-    
+
     const confirmBtn = overlay.querySelector('.modal-btn-confirm');
     const cancelBtn = overlay.querySelector('.modal-btn-cancel');
-    
+
     function closeModal(confirmed) {
       overlay.style.animation = 'fadeOut 0.3s ease';
       setTimeout(() => {
@@ -815,25 +828,25 @@ window.showConfirmModal = function(title, message, onConfirm, onCancel) {
           overlay.parentElement.removeChild(overlay);
         }
       }, 300);
-      
+
       resolve(confirmed);
-      
+
       if (confirmed && onConfirm) {
         onConfirm();
       } else if (!confirmed && onCancel) {
         onCancel();
       }
     }
-    
+
     confirmBtn.addEventListener('click', () => closeModal(true));
     cancelBtn.addEventListener('click', () => closeModal(false));
-    
+
     overlay.addEventListener('click', (e) => {
       if (e.target === overlay) {
         closeModal(false);
       }
     });
-    
+
     const escapeHandler = (e) => {
       if (e.key === 'Escape') {
         closeModal(false);
