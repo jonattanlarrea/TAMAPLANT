@@ -141,71 +141,6 @@ main.expanded {
   color: #121A14;
 }
 
-/* ✅ CONTROLES DE ZOOM - Esquina inferior derecha */
-.zoom-controls {
-  position: absolute;
-  bottom: 1rem;
-  right: 1rem;
-  z-index: 20;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.zoom-btn {
-  width: 45px;
-  height: 45px;
-  background-color: rgba(30, 45, 36, 0.95);
-  color: #00FF9D;
-  border: 2px solid #00FF9D;
-  border-radius: 50%;
-  font-size: 1.3rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-weight: bold;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  user-select: none;
-}
-
-.zoom-btn:hover {
-  background-color: #00FF9D;
-  color: #121A14;
-  transform: scale(1.1);
-  box-shadow: 0 6px 12px rgba(0, 255, 157, 0.5);
-}
-
-.zoom-btn:active {
-  transform: scale(0.95);
-}
-
-/* Indicador de nivel de zoom */
-.zoom-indicator {
-  position: absolute;
-  bottom: 1rem;
-  right: 5rem;
-  z-index: 20;
-  background-color: rgba(30, 45, 36, 0.95);
-  color: #00FF9D;
-  border: 2px solid #00FF9D;
-  border-radius: 8px;
-  padding: 0.4rem 0.8rem;
-  font-size: 0.85rem;
-  font-weight: 600;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.zoom-indicator.show {
-  opacity: 1;
-}
-
 #scene {
   width: 100%;
   height: 100%;
@@ -824,4 +759,204 @@ footer {
   }
 }
 
+.zoom-controls {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  z-index: 20;
+  display: flex;
+  flex-direction: row; /* ← Horizontal en vez de vertical */
+  gap: 0.5rem;
+}
 
+.zoom-btn {
+  width: 38px; /* ← Reducido de 45px a 38px */
+  height: 38px;
+  background-color: rgba(30, 45, 36, 0.95);
+  color: #00FF9D;
+  border: 2px solid #00FF9D;
+  border-radius: 50%;
+  font-size: 1.2rem; /* ← Reducido de 1.3rem */
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: bold;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  padding: 0; /* ← Asegurar padding 0 */
+  line-height: 1; /* ← Forzar altura de línea */
+}
+
+.zoom-btn:hover {
+  background-color: #00FF9D;
+  color: #121A14;
+  transform: scale(1.1);
+  box-shadow: 0 6px 12px rgba(0, 255, 157, 0.5);
+}
+
+.zoom-btn:active {
+  transform: scale(0.95);
+}
+
+/* Indicador de nivel de zoom - ajustar posición */
+.zoom-indicator {
+  position: absolute;
+  top: 1rem;
+  right: 6rem; /* ← Ajustado para estar al lado de los botones */
+  z-index: 20;
+  background-color: rgba(30, 45, 36, 0.95);
+  color: #00FF9D;
+  border: 2px solid #00FF9D;
+  border-radius: 8px;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.zoom-indicator.show {
+  opacity: 1;
+}
+
+/* ✅ BOTÓN DE PANTALLA COMPLETA - Esquina inferior derecha */
+.fullscreen-controls {
+  position: absolute;
+  bottom: 1rem;
+  right: 1rem;
+  z-index: 20;
+}
+
+.fullscreen-btn {
+  width: 42px;
+  height: 42px;
+  background-color: rgba(30, 45, 36, 0.95);
+  color: #00FF9D;
+  border: 2px solid #00FF9D;
+  border-radius: 8px; /* ← Cuadrado redondeado */
+  font-size: 1.3rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  padding: 0;
+}
+
+.fullscreen-btn:hover {
+  background-color: #00FF9D;
+  color: #121A14;
+  transform: scale(1.1);
+  box-shadow: 0 6px 12px rgba(0, 255, 157, 0.5);
+}
+
+.fullscreen-btn:active {
+  transform: scale(0.95);
+}
+
+/* ✅ LAYOUT 50-50 para desktop */
+@media (min-width: 768px) {
+  main {
+    flex-direction: row;
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  #threejs-container {
+    flex: 1; /* ← 50% del espacio */
+    min-height: 400px;
+  }
+
+  #sensor-panel {
+    flex: 1; /* ← 50% del espacio */
+    max-width: none; /* ← Quitar límite de 380px */
+  }
+
+  /* ✅ Grid de sensores: 2 columnas */
+  .sensor-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* ← 2 columnas fijas */
+    gap: 0.8rem; /* ← Gap más pequeño */
+    margin-top: 1rem;
+  }
+
+  /* ✅ Sensores más compactos */
+  .sensor {
+    background-color: #121A14;
+    padding: 1rem; /* ← Reducido de 1.5rem */
+    border-radius: 10px;
+    border: 2px solid #2E3D34;
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+
+  .sensor h3 {
+    font-size: 0.95rem; /* ← Reducido de 1.1rem */
+    color: #00FF9D;
+    margin-bottom: 0.4rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .sensor-icon {
+    width: 20px; /* ← Reducido de 24px */
+    height: 20px;
+    fill: #00FF9D;
+  }
+
+  .sensor p {
+    font-size: 1.5rem; /* ← Reducido de 1.8rem */
+    font-weight: bold;
+    color: #E6E6E6;
+    margin: 0.4rem 0;
+  }
+
+  .sensor-description {
+    font-size: 0.85rem; /* ← Reducido de 0.9rem */
+    color: #A8B2A0;
+    margin-top: 0.4rem;
+  }
+
+  .sensor-status {
+    display: inline-block;
+    padding: 0.2rem 0.6rem; /* ← Más compacto */
+    border-radius: 20px;
+    font-size: 0.75rem; /* ← Reducido de 0.8rem */
+    margin-top: 0.4rem;
+    background-color: #3CB371;
+    color: #E6E6E6;
+  }
+
+  header h1 {
+    font-size: 6rem;
+  }
+}
+
+/* ✅ Fullscreen mode */
+#threejs-container.fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+  border-radius: 0;
+  border: none;
+}
+
+/* Ocultar otros elementos en fullscreen */
+body.fullscreen-active header,
+body.fullscreen-active #sensor-panel,
+body.fullscreen-active footer {
+  display: none;
+}

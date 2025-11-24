@@ -3,6 +3,7 @@ window.addEventListener('DOMContentLoaded', () => {
   initScene();
   setupScrollBehavior();
   setupZoomControls();
+  setupFullscreenControls();
   setupNotificationSystem();
 
   if (typeof setupModelButtons === "function") {
@@ -644,6 +645,81 @@ function setupZoomControls() {
   });
 
   console.log('✅ Controles de zoom configurados');
+}
+
+// Pantalla completa
+function setupFullscreenControls() {
+  const fullscreenBtn = document.getElementById('fullscreenBtn');
+  const container = document.getElementById('threejs-container');
+  
+  if (!fullscreenBtn || !container) {
+    console.warn('⚠️ Botón de pantalla completa no encontrado');
+    return;
+  }
+
+  let isFullscreen = false;
+
+  fullscreenBtn.addEventListener('click', () => {
+    if (!isFullscreen) {
+      enterFullscreen();
+    } else {
+      exitFullscreen();
+    }
+  });
+
+  function enterFullscreen() {
+    container.classList.add('fullscreen');
+    document.body.classList.add('fullscreen-active');
+    
+    fullscreenBtn.innerHTML = '✕';
+    fullscreenBtn.title = 'Salir de pantalla completa';
+    
+    isFullscreen = true;
+
+    setTimeout(() => {
+      if (window.camera && window.renderer && container) {
+        const width = container.clientWidth;
+        const height = container.clientHeight;
+        
+        window.camera.aspect = width / height;
+        window.camera.updateProjectionMatrix();
+        window.renderer.setSize(width, height);
+        
+        console.log(`📐 Pantalla completa activada: ${width}x${height}`);
+      }
+    }, 100);
+  }
+
+  function exitFullscreen() {
+    container.classList.remove('fullscreen');
+    document.body.classList.remove('fullscreen-active');
+    
+    fullscreenBtn.innerHTML = '⛶';
+    fullscreenBtn.title = 'Pantalla completa';
+    
+    isFullscreen = false;
+
+    setTimeout(() => {
+      if (window.camera && window.renderer && container) {
+        const width = container.clientWidth;
+        const height = container.clientHeight;
+        
+        window.camera.aspect = width / height;
+        window.camera.updateProjectionMatrix();
+        window.renderer.setSize(width, height);
+        
+        console.log(`📐 Pantalla completa desactivada: ${width}x${height}`);
+      }
+    }, 100);
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && isFullscreen) {
+      exitFullscreen();
+    }
+  });
+
+  console.log('✅ Controles de pantalla completa configurados');
 }
 
 // Sistema de notificaciones personalizado
