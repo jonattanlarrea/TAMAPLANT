@@ -8,26 +8,89 @@ body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background-color: #1E2D24;
   color: #E6E6E6;
-  height: 100vh; /* ← Altura fija al viewport */
+  height: 100vh;
   display: flex;
   flex-direction: column;
-  overflow-y: auto; /* ← Permitir scroll vertical */
-  overflow-x: hidden; /* ← Sin scroll horizontal */
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 header {
   background: linear-gradient(135deg, #121A14 0%, #1E2D24 100%);
-  padding: 1rem 2rem; /* ← Reducido de 1.5rem a 1rem */
+  padding: 1rem 2rem;
   text-align: center;
   border-bottom: 2px solid #00FF9D;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-  flex-shrink: 0; /* ← No se comprime */
-  transition: all 0.4s ease; /* ← Animación suave */
-  max-height: 500px; /* ← Altura máxima cuando está visible */
+  flex-shrink: 0;
+  transition: all 0.4s ease;
+  max-height: 500px;
   overflow: hidden;
 }
 
-/* ✅ Header oculto al hacer scroll */
+/* ✅ Contenedor para logo + título */
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+}
+
+/* ✅ Estilos del logo */
+.header-logo {
+  height: 60px;
+  width: auto;
+  filter: drop-shadow(0 0 10px rgba(0, 255, 157, 0.4));
+  transition: all 0.3s ease;
+  animation: float 3s ease-in-out infinite;
+}
+
+.header-logo:hover {
+  filter: drop-shadow(0 0 20px rgba(0, 255, 157, 0.6));
+  transform: scale(1.05);
+}
+
+/* ✅ Animación flotante del logo */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+/* ✅ Contenedor para logo + título */
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+}
+
+/* ✅ Estilos del logo */
+.header-logo {
+  height: 60px;
+  width: auto;
+  filter: drop-shadow(0 0 10px rgba(0, 255, 157, 0.4));
+  transition: all 0.3s ease;
+  animation: float 3s ease-in-out infinite;
+}
+
+.header-logo:hover {
+  filter: drop-shadow(0 0 20px rgba(0, 255, 157, 0.6));
+  transform: scale(1.05);
+}
+
+/* ✅ Animación flotante del logo */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
 header.hidden {
   max-height: 0;
   padding: 0 2rem;
@@ -47,7 +110,7 @@ header.hidden {
 
 header h1 {
   font-family: 'DarkFuture';
-  font-size: 3rem; /* ← Reducido de 4rem a 3rem */
+  font-size: 3rem;
   font-weight: normal;
   letter-spacing: 15px;
   text-transform: uppercase;
@@ -73,15 +136,14 @@ main {
   flex-direction: column;
   padding: 1rem;
   gap: 1rem;
-  overflow: hidden; /* ← Evitar scroll en main */
-  min-height: 0; /* ← Permitir que se reduzca */
-  transition: all 0.4s ease; /* ← Animación suave */
+  overflow: hidden;
+  min-height: 0;
+  transition: all 0.4s ease;
 }
 
-/* ✅ Main expandido cuando el header está oculto */
 main.expanded {
   flex: 1;
-  min-height: calc(100vh - 3rem); /* ← Ocupa casi toda la pantalla (menos footer) */
+  min-height: calc(100vh - 3rem);
 }
 
 #threejs-container {
@@ -90,12 +152,11 @@ main.expanded {
   border: 2px solid #2E3D34;
   overflow: hidden;
   position: relative;
-  flex: 1; /* ← Toma el espacio disponible */
-  min-height: 300px; /* ← Altura mínima razonable */
+  flex: 1;
+  min-height: 300px;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
 }
 
-/* ✅ CONTROLES DE MODELO FLOTANTES */
 .model-controls {
   position: absolute;
   top: 1rem;
@@ -152,7 +213,6 @@ main.expanded {
   cursor: grabbing;
 }
 
-/* ✅ Mensaje de carga - OCULTO por defecto */
 .loading-message {
   position: absolute;
   top: 50%;
@@ -166,16 +226,14 @@ main.expanded {
   padding: 2rem;
   border-radius: 12px;
   border: 2px solid #2E3D34;
-  display: none; /* ← Oculto por defecto */
+  display: none;
   pointer-events: none;
 }
 
-/* Solo mostrar cuando tenga la clase .show */
 .loading-message.show {
   display: block;
 }
 
-/* ✅ Hotspots (círculos verdes interactivos) */
 .sensor-hotspot {
   position: absolute;
   width: 20px;
@@ -212,8 +270,8 @@ main.expanded {
   padding: 1.5rem;
   border: 2px solid #2E3D34;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
-  overflow-y: auto; /* ← Permitir scroll solo en el panel si es necesario */
-  max-height: 100%; /* ← Limitar altura máxima */
+  overflow-y: auto;
+  max-height: 100%;
 }
 
 .sensor-grid {
@@ -332,7 +390,6 @@ button:active {
   transform: translateY(0);
 }
 
-/* Botón de eliminar (rojo) */
 .delete-btn {
   background-color: #C62828;
   color: #E6E6E6;
@@ -345,16 +402,15 @@ button:active {
 
 footer {
   background-color: #121A14;
-  padding: 0.75rem; /* ← Reducido de 1.5rem a 0.75rem */
+  padding: 0.75rem;
   text-align: center;
   border-top: 2px solid #2E3D34;
   color: #A8B2A0;
-  font-size: 0.85rem; /* ← Reducido de 0.9rem */
-  flex-shrink: 0; /* ← No se comprime */
+  font-size: 0.85rem;
+  flex-shrink: 0;
   position: relative;
 }
 
-/* ✅ Indicador de scroll (flecha animada) */
 .scroll-indicator {
   position: fixed;
   bottom: 1rem;
@@ -399,22 +455,81 @@ footer {
 @media (min-width: 768px) {
   main {
     flex-direction: row;
-    padding: 1rem; /* ← Reducido de 2rem a 1rem */
-    gap: 1rem; /* ← Reducido de 2rem a 1rem */
+    padding: 1rem;
+    gap: 1rem;
   }
 
   #threejs-container {
-    flex: 2;
-    min-height: 400px; /* ← Altura mínima para pantallas grandes */
+    flex: 1;
+    min-height: 400px;
   }
 
   #sensor-panel {
     flex: 1;
-    max-width: 380px; /* ← Reducido de 400px */
+    max-width: none;
+  }
+
+  .sensor-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.8rem;
+    margin-top: 1rem;
+  }
+
+  .sensor {
+    background-color: #121A14;
+    padding: 1rem;
+    border-radius: 10px;
+    border: 2px solid #2E3D34;
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+
+  .sensor h3 {
+    font-size: 0.95rem;
+    color: #00FF9D;
+    margin-bottom: 0.4rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .sensor-icon {
+    width: 20px;
+    height: 20px;
+    fill: #00FF9D;
+  }
+
+  .sensor p {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #E6E6E6;
+    margin: 0.4rem 0;
+  }
+
+  .sensor-description {
+    font-size: 0.85rem;
+    color: #A8B2A0;
+    margin-top: 0.4rem;
+  }
+
+  .sensor-status {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    margin-top: 0.4rem;
+    background-color: #3CB371;
+    color: #E6E6E6;
   }
 
   header h1 {
-    font-size: 6rem; /* ← Reducido de 10rem a 6rem */
+    font-size: 6rem;
+  }
+
+  /* ✅ Logo más grande en desktop */
+  .header-logo {
+    height: 80px;
   }
 }
 
@@ -454,7 +569,6 @@ footer {
   margin: 0.25rem 0;
 }
 
-/* ✅ SISTEMA DE NOTIFICACIONES PERSONALIZADO */
 .notification-container {
   position: fixed;
   top: 5rem;
@@ -601,7 +715,6 @@ footer {
   background: #4A9EFF;
 }
 
-/* Animaciones */
 @keyframes slideInRight {
   from {
     transform: translateX(400px);
@@ -642,7 +755,6 @@ footer {
   }
 }
 
-/* Modal de confirmación personalizado */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -765,18 +877,18 @@ footer {
   right: 1rem;
   z-index: 20;
   display: flex;
-  flex-direction: row; /* ← Horizontal en vez de vertical */
+  flex-direction: row;
   gap: 0.5rem;
 }
 
 .zoom-btn {
-  width: 38px; /* ← Reducido de 45px a 38px */
+  width: 38px;
   height: 38px;
   background-color: rgba(30, 45, 36, 0.95);
   color: #00FF9D;
   border: 2px solid #00FF9D;
   border-radius: 50%;
-  font-size: 1.2rem; /* ← Reducido de 1.3rem */
+  font-size: 1.2rem;
   cursor: pointer;
   transition: all 0.3s ease;
   font-weight: bold;
@@ -786,8 +898,8 @@ footer {
   align-items: center;
   justify-content: center;
   user-select: none;
-  padding: 0; /* ← Asegurar padding 0 */
-  line-height: 1; /* ← Forzar altura de línea */
+  padding: 0;
+  line-height: 1;
 }
 
 .zoom-btn:hover {
@@ -801,11 +913,10 @@ footer {
   transform: scale(0.95);
 }
 
-/* Indicador de nivel de zoom - ajustar posición */
 .zoom-indicator {
   position: absolute;
   top: 1rem;
-  right: 6rem; /* ← Ajustado para estar al lado de los botones */
+  right: 6rem;
   z-index: 20;
   background-color: rgba(30, 45, 36, 0.95);
   color: #00FF9D;
@@ -825,7 +936,6 @@ footer {
   opacity: 1;
 }
 
-/* ✅ BOTÓN DE PANTALLA COMPLETA - Esquina inferior derecha */
 .fullscreen-controls {
   position: absolute;
   bottom: 1rem;
@@ -839,7 +949,7 @@ footer {
   background-color: rgba(30, 45, 36, 0.95);
   color: #00FF9D;
   border: 2px solid #00FF9D;
-  border-radius: 8px; /* ← Cuadrado redondeado */
+  border-radius: 8px;
   font-size: 1.3rem;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -863,86 +973,6 @@ footer {
   transform: scale(0.95);
 }
 
-/* ✅ LAYOUT 50-50 para desktop */
-@media (min-width: 768px) {
-  main {
-    flex-direction: row;
-    padding: 1rem;
-    gap: 1rem;
-  }
-
-  #threejs-container {
-    flex: 1; /* ← 50% del espacio */
-    min-height: 400px;
-  }
-
-  #sensor-panel {
-    flex: 1; /* ← 50% del espacio */
-    max-width: none; /* ← Quitar límite de 380px */
-  }
-
-  /* ✅ Grid de sensores: 2 columnas */
-  .sensor-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr); /* ← 2 columnas fijas */
-    gap: 0.8rem; /* ← Gap más pequeño */
-    margin-top: 1rem;
-  }
-
-  /* ✅ Sensores más compactos */
-  .sensor {
-    background-color: #121A14;
-    padding: 1rem; /* ← Reducido de 1.5rem */
-    border-radius: 10px;
-    border: 2px solid #2E3D34;
-    transition: all 0.3s ease;
-    cursor: pointer;
-  }
-
-  .sensor h3 {
-    font-size: 0.95rem; /* ← Reducido de 1.1rem */
-    color: #00FF9D;
-    margin-bottom: 0.4rem;
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-  }
-
-  .sensor-icon {
-    width: 20px; /* ← Reducido de 24px */
-    height: 20px;
-    fill: #00FF9D;
-  }
-
-  .sensor p {
-    font-size: 1.5rem; /* ← Reducido de 1.8rem */
-    font-weight: bold;
-    color: #E6E6E6;
-    margin: 0.4rem 0;
-  }
-
-  .sensor-description {
-    font-size: 0.85rem; /* ← Reducido de 0.9rem */
-    color: #A8B2A0;
-    margin-top: 0.4rem;
-  }
-
-  .sensor-status {
-    display: inline-block;
-    padding: 0.2rem 0.6rem; /* ← Más compacto */
-    border-radius: 20px;
-    font-size: 0.75rem; /* ← Reducido de 0.8rem */
-    margin-top: 0.4rem;
-    background-color: #3CB371;
-    color: #E6E6E6;
-  }
-
-  header h1 {
-    font-size: 6rem;
-  }
-}
-
-/* ✅ Fullscreen mode */
 #threejs-container.fullscreen {
   position: fixed;
   top: 0;
@@ -954,7 +984,6 @@ footer {
   border: none;
 }
 
-/* Ocultar otros elementos en fullscreen */
 body.fullscreen-active header,
 body.fullscreen-active #sensor-panel,
 body.fullscreen-active footer {
