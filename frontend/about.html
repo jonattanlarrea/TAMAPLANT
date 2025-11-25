@@ -22,25 +22,28 @@
     </div>
   </header>
 
+  <!-- Navegación interna de secciones -->
+  <nav class="about-nav">
+    <a href="#contexto" class="about-nav-link">Contexto</a>
+    <a href="#vision" class="about-nav-link">Visión</a>
+    <a href="#objetivos" class="about-nav-link">Objetivos</a>
+    <a href="#tecnologias" class="about-nav-link">Tecnologías</a>
+    <a href="#equipo" class="about-nav-link">Equipo</a>
+  </nav>
+
   <main class="about-main">
 
-    <!-- Hero Section -->
-    <section class="about-hero">
-      <div class="hero-content">
-        <h2 class="hero-title">SOBRE EL PROYECTO</h2>
-        <p class="hero-subtitle">Gemelo Digital para Monitoreo Inteligente de Plantas</p>
-      </div>
-    </section>
-
     <!-- Contexto -->
-    <section class="about-section">
-      <div class="section-content">
-        <div class="section-icon">🌱</div>
-        <h2>Contexto del Proyecto</h2>
+    <section id="contexto" class="about-box">
+      <div class="box-header">
+        <span class="box-icon">🌱</span>
+        <h2>CONTEXTO DEL PROYECTO</h2>
+      </div>
+      <div class="box-content">
         <p>
           TAMAPLANT nace como respuesta a la creciente necesidad de optimizar el cuidado de plantas 
           mediante tecnologías emergentes. En un mundo donde la agricultura urbana y el cuidado 
-          consciente de las plantas ganan relevancia, nuestro proyecto integra IoT (Internet de las Cosas), 
+          consciente de las plantas ganan relevancia, nuestro proyecto integra <strong>IoT (Internet de las Cosas)</strong>, 
           sensores inteligentes y visualización 3D para crear una experiencia de monitoreo inmersiva y en tiempo real.
         </p>
         <p>
@@ -48,30 +51,40 @@
           moderna que permite a cualquier persona, desde aficionados hasta profesionales, monitorear 
           las condiciones vitales de sus plantas de forma remota y eficiente.
         </p>
+        <div class="highlight-box">
+          <strong>🎯 Problema identificado:</strong> La mayoría de las personas no cuentan con herramientas 
+          accesibles para monitorear en tiempo real las condiciones de sus plantas, lo que resulta en 
+          pérdidas por riego inadecuado, exposición incorrecta a la luz o problemas de pH en el suelo.
+        </div>
       </div>
     </section>
 
     <!-- Visión -->
-    <section class="about-section vision-section">
-      <div class="section-content">
-        <div class="section-icon">🔭</div>
-        <h2>Nuestra Visión</h2>
-        <div class="vision-grid">
-          <div class="vision-card">
+    <section id="vision" class="about-box">
+      <div class="box-header">
+        <span class="box-icon">🔭</span>
+        <h2>NUESTRA VISIÓN</h2>
+      </div>
+      <div class="box-content">
+        <div class="vision-cards">
+          <div class="mini-card">
+            <div class="mini-card-icon">💡</div>
             <h3>Democratizar la Tecnología</h3>
             <p>
               Hacer accesible la tecnología de monitoreo avanzado para cualquier persona 
               interesada en el cuidado de plantas, sin necesidad de conocimientos técnicos complejos.
             </p>
           </div>
-          <div class="vision-card">
+          <div class="mini-card">
+            <div class="mini-card-icon">🌍</div>
             <h3>Sostenibilidad</h3>
             <p>
               Contribuir al cuidado responsable del medio ambiente mediante el uso eficiente 
               de recursos hídricos y energéticos en el cultivo de plantas.
             </p>
           </div>
-          <div class="vision-card">
+          <div class="mini-card">
+            <div class="mini-card-icon">🚀</div>
             <h3>Innovación Continua</h3>
             <p>
               Evolucionar constantemente integrando nuevas tecnologías como machine learning 
@@ -83,14 +96,16 @@
     </section>
 
     <!-- Objetivos -->
-    <section class="about-section objectives-section">
-      <div class="section-content">
-        <div class="section-icon">🎯</div>
-        <h2>Objetivos del Proyecto</h2>
-        <div class="objectives-list">
-          <div class="objective-item">
+    <section id="objetivos" class="about-box">
+      <div class="box-header">
+        <span class="box-icon">🎯</span>
+        <h2>OBJETIVOS DEL PROYECTO</h2>
+      </div>
+      <div class="box-content">
+        <div class="objectives-container">
+          <div class="objective-row">
             <div class="objective-number">01</div>
-            <div class="objective-content">
+            <div class="objective-text">
               <h3>Monitoreo en Tiempo Real</h3>
               <p>
                 Proporcionar datos precisos y actualizados de humedad del suelo, temperatura, 
@@ -99,9 +114,9 @@
             </div>
           </div>
 
-          <div class="objective-item">
+          <div class="objective-row">
             <div class="objective-number">02</div>
-            <div class="objective-content">
+            <div class="objective-text">
               <h3>Visualización Inmersiva</h3>
               <p>
                 Crear un gemelo digital 3D interactivo que permita visualizar el estado de la planta 
@@ -110,9 +125,9 @@
             </div>
           </div>
 
-          <div class="objective-item">
+          <div class="objective-row">
             <div class="objective-number">03</div>
-            <div class="objective-content">
+            <div class="objective-text">
               <h3>Alertas Inteligentes</h3>
               <p>
                 Implementar un sistema de notificaciones que alerte al usuario cuando las 
@@ -121,9 +136,9 @@
             </div>
           </div>
 
-          <div class="objective-item">
+          <div class="objective-row">
             <div class="objective-number">04</div>
-            <div class="objective-content">
+            <div class="objective-text">
               <h3>Accesibilidad Remota</h3>
               <p>
                 Permitir el acceso desde cualquier dispositivo con conexión a internet, 
@@ -132,9 +147,9 @@
             </div>
           </div>
 
-          <div class="objective-item">
+          <div class="objective-row">
             <div class="objective-number">05</div>
-            <div class="objective-content">
+            <div class="objective-text">
               <h3>Código Abierto y Educativo</h3>
               <p>
                 Servir como referencia educativa para estudiantes y entusiastas de IoT, 
@@ -147,57 +162,93 @@
     </section>
 
     <!-- Tecnologías -->
-    <section class="about-section tech-section">
-      <div class="section-content">
-        <div class="section-icon">⚡</div>
-        <h2>Tecnologías Utilizadas</h2>
-        <div class="tech-grid">
-          <div class="tech-card">
-            <div class="tech-icon">🔌</div>
-            <h3>Hardware IoT</h3>
-            <p>ESP32, sensores de humedad, temperatura (DS18B20), pH y luminosidad (BH1750)</p>
+    <section id="tecnologias" class="about-box">
+      <div class="box-header">
+        <span class="box-icon">⚡</span>
+        <h2>TECNOLOGÍAS UTILIZADAS</h2>
+      </div>
+      <div class="box-content">
+        <div class="tech-container">
+          <div class="tech-row">
+            <div class="tech-label">🔌 Hardware IoT</div>
+            <div class="tech-description">
+              ESP32 microcontrolador, sensores de humedad capacitivos, sensor de temperatura DS18B20, 
+              sensor de pH analógico, sensor de luminosidad BH1750
+            </div>
           </div>
-          <div class="tech-card">
-            <div class="tech-icon">🌐</div>
-            <h3>Frontend</h3>
-            <p>HTML5, CSS3, JavaScript (ES6+), Three.js para renderizado 3D</p>
+          <div class="tech-row">
+            <div class="tech-label">🌐 Frontend</div>
+            <div class="tech-description">
+              HTML5, CSS3 con animaciones, JavaScript ES6+, Three.js para renderizado 3D, 
+              GLTF Loader para modelos 3D
+            </div>
           </div>
-          <div class="tech-card">
-            <div class="tech-icon">📡</div>
-            <h3>Comunicación</h3>
-            <p>WebSocket para transmisión de datos en tiempo real</p>
+          <div class="tech-row">
+            <div class="tech-label">📡 Comunicación</div>
+            <div class="tech-description">
+              WebSocket para transmisión de datos en tiempo real, protocolo JSON para 
+              intercambio de información
+            </div>
           </div>
-          <div class="tech-card">
-            <div class="tech-icon">🎨</div>
-            <h3>Diseño</h3>
-            <p>Interfaz futurista con temática cyberpunk y animaciones CSS</p>
+          <div class="tech-row">
+            <div class="tech-label">🎨 Diseño</div>
+            <div class="tech-description">
+              Interfaz futurista con temática cyberpunk, animaciones CSS, tipografía custom 
+              (DarkFuture), paleta de colores verde neón
+            </div>
+          </div>
+          <div class="tech-row">
+            <div class="tech-label">☁️ Cloud & Network</div>
+            <div class="tech-description">
+              Conexión WiFi, servidor web embebido en ESP32, acceso remoto mediante 
+              servicio de DNS dinámico
+            </div>
           </div>
         </div>
       </div>
     </section>
 
     <!-- Equipo -->
-    <section class="about-section team-section">
-      <div class="section-content">
-        <div class="section-icon">👥</div>
-        <h2>Equipo de Desarrollo</h2>
-        <div class="team-grid">
-          <div class="team-card">
-            <div class="team-avatar">JL</div>
-            <h3>Jonattan Larrea</h3>
-            <p class="team-role">Co-Desarrollador</p>
-            <p class="team-description">
-              Especialista en desarrollo frontend e integración de sistemas IoT
-            </p>
+    <section id="equipo" class="about-box">
+      <div class="box-header">
+        <span class="box-icon">👥</span>
+        <h2>EQUIPO DE DESARROLLO</h2>
+      </div>
+      <div class="box-content">
+        <div class="team-container">
+          <div class="team-member">
+            <div class="member-avatar">JL</div>
+            <div class="member-info">
+              <h3>Jonattan Larrea</h3>
+              <p class="member-role">Co-Desarrollador</p>
+              <p class="member-description">
+                Especialista en desarrollo frontend e integración de sistemas IoT. 
+                Responsable del diseño de la interfaz web, visualización 3D con Three.js 
+                y comunicación WebSocket en tiempo real.
+              </p>
+            </div>
           </div>
-          <div class="team-card">
-            <div class="team-avatar">NA</div>
-            <h3>Nelson Aravena</h3>
-            <p class="team-role">Co-Desarrollador</p>
-            <p class="team-description">
-              Experto en hardware, sensores y comunicación inalámbrica
-            </p>
+
+          <div class="team-member">
+            <div class="member-avatar">NA</div>
+            <div class="member-info">
+              <h3>Nelson Aravena</h3>
+              <p class="member-role">Co-Desarrollador</p>
+              <p class="member-description">
+                Experto en hardware, sensores y comunicación inalámbrica. 
+                Responsable de la programación del ESP32, calibración de sensores 
+                y establecimiento de la arquitectura de comunicación.
+              </p>
+            </div>
           </div>
+        </div>
+
+        <div class="project-info">
+          <p>
+            <strong>📅 Año de desarrollo:</strong> 2025<br>
+            <strong>🏫 Institución:</strong> Proyecto Académico<br>
+            <strong>📧 Contacto:</strong> tamaplant@project.com
+          </p>
         </div>
       </div>
     </section>
