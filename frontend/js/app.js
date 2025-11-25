@@ -1,4 +1,3 @@
-// Esperar a que THREE esté disponible
 window.addEventListener('DOMContentLoaded', () => {
   initScene();
   setupScrollBehavior();
@@ -301,7 +300,6 @@ function normalizeSensorData(raw) {
     humidity: raw.soil_moisture,           // humedad del suelo
     light: raw.lux,                        // luminosidad
     temperature: raw.temperature_ds18b20,  // temperatura real
-    // ph NO VIENE en el JSON → queda sin actualizar
   };
 }
 
@@ -414,8 +412,6 @@ function updateSensorData(data) {
     }
   });
 }
-
-
 
 // Funciones globales para botones
 function refreshData() {
