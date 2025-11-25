@@ -1087,11 +1087,13 @@ body.fullscreen-active footer {
   max-width: 1400px;
   margin: 0 auto;
   overflow-y: auto;
+  overflow-x: hidden;
   background: #1E2D24;
   padding: 2rem;
   display: flex;
   flex-direction: column;
   gap: 2rem;
+  min-height: 0;
 }
 
 /* Navegación interna debajo del header */
@@ -1107,6 +1109,7 @@ body.fullscreen-active footer {
   top: 0;
   z-index: 50;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  flex-shrink: 0;
 }
 
 .about-nav-link {
@@ -1142,10 +1145,11 @@ body.fullscreen-active footer {
   background: linear-gradient(135deg, #1E2D24 0%, #2E3D34 100%);
   border-radius: 12px;
   border: 2px solid #2E3D34;
-  overflow: hidden;
+  overflow: visible;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
   transition: all 0.3s ease;
-  scroll-margin-top: 120px;
+  scroll-margin-top: 150px;
+  flex-shrink: 0;
 }
 
 .about-box:hover {
