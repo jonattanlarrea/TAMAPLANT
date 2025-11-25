@@ -1045,11 +1045,6 @@ body.fullscreen-active footer {
   display: none;
 }
 
-/* ========================================
-   SCROLLBAR PERSONALIZADO
-======================================== */
-
-/* Para Webkit (Chrome, Safari, Edge) */
 ::-webkit-scrollbar {
   width: 12px;
 }
@@ -1071,15 +1066,10 @@ body.fullscreen-active footer {
   box-shadow: 0 0 15px rgba(0, 255, 157, 0.5);
 }
 
-/* Para Firefox */
 * {
   scrollbar-width: thin;
   scrollbar-color: #00FF9D #121A14;
 }
-
-/* ========================================
-   ESTILOS PARA PÁGINA ABOUT
-======================================== */
 
 .about-main {
   flex: 1;
@@ -1096,7 +1086,6 @@ body.fullscreen-active footer {
   min-height: 0;
 }
 
-/* Navegación interna debajo del header */
 .about-nav {
   background: linear-gradient(135deg, #121A14 0%, #1E2D24 100%);
   border-bottom: 2px solid #2E3D34;
@@ -1140,7 +1129,6 @@ body.fullscreen-active footer {
   box-shadow: 0 0 10px rgba(0, 255, 157, 0.3);
 }
 
-/* Recuadros estilo tarjetas de sensores */
 .about-box {
   background: linear-gradient(135deg, #1E2D24 0%, #2E3D34 100%);
   border-radius: 12px;
@@ -1202,7 +1190,6 @@ body.fullscreen-active footer {
   text-shadow: 0 0 5px rgba(0, 255, 157, 0.3);
 }
 
-/* Highlight box dentro del contenido */
 .highlight-box {
   background: rgba(0, 255, 157, 0.08);
   border-left: 4px solid #00FF9D;
@@ -1215,7 +1202,6 @@ body.fullscreen-active footer {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-/* Mini cards dentro de recuadros */
 .vision-cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -1357,7 +1343,6 @@ body.fullscreen-active footer {
   line-height: 1.6;
 }
 
-/* Equipo */
 .team-container {
   display: flex;
   flex-direction: column;
@@ -1450,7 +1435,6 @@ body.fullscreen-active footer {
   text-shadow: 0 0 5px rgba(0, 255, 157, 0.3);
 }
 
-/* Responsive para About */
 @media (max-width: 768px) {
   .about-main {
     padding: 1rem;
