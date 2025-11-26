@@ -1,123 +1,186 @@
-// scene.js - Inicialización de la escena 3D con Three.js
+// camera.js - Controles de cámara, rotación y zoom
 
-function initScene() {
-  const container = document.getElementById('threejs-container');
+function setupCameraControls() {
   const canvas = document.getElementById('scene');
-  const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(
-    75,
-    container.clientWidth / container.clientHeight,
-    0.1,
-    1000
-  );
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  let isDragging = false;
+  let previousMousePosition = { x: 0, y: 0 };
+  let rotation = { x: 0, y: 0 };
 
-  renderer.setSize(container.clientWidth, container.clientHeight);
-  renderer.setClearColor(0x121A14);
+  // Rotación con mouse
+  canvas.addEventListener('mousedown', e => {
+    isDragging = true;
+    previousMousePosition = { x: e.clientX, y: e.clientY };
+  });
 
-  // Iluminación mejorada
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
-  scene.add(ambientLight);
+  canvas.addEventListener('mousemove', e => {
+    if (isDragging) {
+      const deltaX = e.clientX - previousMousePosition.x;
+      const deltaY = e.clientY - previousMousePosition.y;
 
-  const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-  directionalLight.position.set(5, 10, 5);
-  scene.add(directionalLight);
+      rotation.y += deltaX * 0.01;
+      rotation.x += deltaY * 0.01;
 
-  const pointLight = new THREE.PointLight(0x00FF9D, 0.5);
-  pointLight.position.set(-5, 5, -5);
-  scene.add(pointLight);
+      previousMousePosition = { x: e.clientX, y: e.clientY };
+    }
+  });
 
-  const backLight = new THREE.DirectionalLight(0xffffff, 0.5);
-  backLight.position.set(-5, 5, -5);
-  scene.add(backLight);
+  canvas.addEventListener('mouseup', () => isDragging = false);
+  canvas.addEventListener('mouseleave', () => isDragging = false);
 
-  // Inicializar variables globales
-  let loadedPlant = null;
-  const loadingMessage = document.querySelector('.loading-message');
+  // Rotación con touch
+  canvas.addEventListener('touchstart', e => {
+    isDragging = true;
+    previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+  });
 
-  window.loadedPlant = loadedPlant;
-  window.loadingMessage = loadingMessage;
-  window.scene = scene;
-  window.camera = camera;
-  window.renderer = renderer;
+  canvas.addEventListener('touchmove', e => {
+    if (isDragging) {
+      const deltaX = e.touches[0].clientX - previousMousePosition.x;
+      const deltaY = e.touches[0].clientY - previousMousePosition.y;
 
-  // Verificar GLTFLoader
-  if (typeof THREE.GLTFLoader === 'undefined') {
-    console.error('GLTFLoader no está cargado');
-    loadingMessage.innerHTML = `
-      ❌ Error: GLTFLoader no disponible
-      <br><small style="color: #F2C94C; margin-top: 0.5rem; display: block;">
-        Verifica que Three.js esté cargado correctamente
-      </small>
-    `;
+      rotation.y += deltaX * 0.01;
+      rotation.x += deltaY * 0.01;
+
+      previousMousePosition = {
+        x: e.touches[0].clientX,
+        y: e.touches[0].clientY
+      };
+    }
+  });
+
+  canvas.addEventListener('touchend', () => isDragging = false);
+
+  // Zoom con scroll del mouse
+  canvas.addEventListener('wheel', (e) => {
+    e.preventDefault();
+
+    const zoomSpeed = 0.1;
+    const delta = e.deltaY > 0 ? 1 : -1;
+
+    const newZ = window.camera.position.z + delta * zoomSpeed;
+    if (newZ >= 2 && newZ <= 15) {
+      window.camera.position.z = newZ;
+      console.log(`🔍 Zoom: ${window.camera.position.z.toFixed(2)}`);
+    }
+  }, { passive: false });
+
+  // Aplicar rotación a la escena
+  function updateRotation() {
+    if (window.scene) {
+      window.scene.rotation.y = rotation.y;
+      window.scene.rotation.x = Math.max(-Math.PI / 4, Math.min(Math.PI / 4, rotation.x));
+    }
+    requestAnimationFrame(updateRotation);
+  }
+  updateRotation();
+
+  console.log('✅ Controles de cámara configurados');
+}
+
+// Controles de zoom con botones
+function setupZoomControls() {
+  const zoomInBtn = document.getElementById('zoomInBtn');
+  const zoomOutBtn = document.getElementById('zoomOutBtn');
+  const zoomIndicator = document.getElementById('zoomIndicator');
+
+  if (!zoomInBtn || !zoomOutBtn) {
+    console.warn('⚠️ Botones de zoom no encontrados');
     return;
   }
 
-  loadingMessage.innerHTML = `
-    📁 Sin modelo cargado
-    <br>
-    <small style="color: #A8B2A0; margin-top: 0.5rem; display: block;">
-      Usa el botón "📁 Cargar Modelo" para comenzar
-    </small>
-  `;
-  loadingMessage.style.display = 'none';
+  const minZoom = 2;
+  const maxZoom = 15;
+  const zoomStep = 0.5;
+  let indicatorTimeout = null;
 
-  // Base
-  const baseGeometry = new THREE.BoxGeometry(3, 0.3, 3);
-  const baseMaterial = new THREE.MeshPhongMaterial({
-    color: 0x2E3D34,
-    shininess: 30
-  });
-  const base = new THREE.Mesh(baseGeometry, baseMaterial);
-  base.position.y = -1.5;
-  scene.add(base);
+  function updateZoomIndicator() {
+    if (!window.camera || !zoomIndicator) return;
 
-  console.log("📦 Objetos en la escena:", scene.children.length);
-  scene.children.forEach((obj, index) => {
-    console.log(`  ${index}: ${obj.type} - ${obj.geometry?.type || 'sin geometría'}`);
-  });
+    const currentZoom = window.camera.position.z;
+    const zoomPercent = Math.round(((maxZoom - currentZoom) / (maxZoom - minZoom)) * 100);
 
-  // Posición inicial de la cámara
-  camera.position.set(0, 1, 6);
-  camera.lookAt(0, 0, 0);
+    zoomIndicator.textContent = `${zoomPercent}%`;
+    zoomIndicator.classList.add('show');
 
-  // Animación de renderizado
-  function animate() {
-    requestAnimationFrame(animate);
-    renderer.render(scene, camera);
+    clearTimeout(indicatorTimeout);
+    indicatorTimeout = setTimeout(() => {
+      zoomIndicator.classList.remove('show');
+    }, 1500);
   }
-  animate();
 
-  // Responsive
-  window.addEventListener('resize', () => {
-    const width = container.clientWidth;
-    const height = container.clientHeight;
+  function performZoom(direction) {
+    if (!window.camera) return;
 
-    camera.aspect = width / height;
-    camera.updateProjectionMatrix();
-    renderer.setSize(width, height);
+    const delta = direction === 'in' ? -zoomStep : zoomStep;
+    const newZ = window.camera.position.z + delta;
 
-    console.log(`📐 Ventana redimensionada: ${width}x${height}`);
+    if (newZ >= minZoom && newZ <= maxZoom) {
+      window.camera.position.z = newZ;
+      updateZoomIndicator();
+      console.log(`🔍 Zoom ${direction === 'in' ? 'IN' : 'OUT'}: ${newZ.toFixed(2)}`);
+    } else {
+      console.log(`⚠️ Límite de zoom alcanzado`);
+    }
+  }
+
+  zoomInBtn.addEventListener('click', () => performZoom('in'));
+  zoomOutBtn.addEventListener('click', () => performZoom('out'));
+
+  let zoomInterval = null;
+
+  // Mantener presionado para zoom continuo
+  zoomInBtn.addEventListener('mousedown', () => {
+    zoomInterval = setInterval(() => performZoom('in'), 100);
   });
 
-  // Observer para detectar cambios de tamaño del contenedor
-  if (typeof ResizeObserver !== 'undefined') {
-    const resizeObserver = new ResizeObserver(entries => {
-      for (let entry of entries) {
-        const width = entry.contentRect.width;
-        const height = entry.contentRect.height;
+  zoomOutBtn.addEventListener('mousedown', () => {
+    zoomInterval = setInterval(() => performZoom('out'), 100);
+  });
 
-        if (width > 0 && height > 0) {
-          camera.aspect = width / height;
-          camera.updateProjectionMatrix();
-          renderer.setSize(width, height);
-          console.log(`📐 Contenedor redimensionado: ${width}x${height}`);
-        }
+  ['mouseup', 'mouseleave'].forEach(event => {
+    zoomInBtn.addEventListener(event, () => {
+      if (zoomInterval) {
+        clearInterval(zoomInterval);
+        zoomInterval = null;
       }
     });
 
-    resizeObserver.observe(container);
-  }
+    zoomOutBtn.addEventListener(event, () => {
+      if (zoomInterval) {
+        clearInterval(zoomInterval);
+        zoomInterval = null;
+      }
+    });
+  });
 
-  console.log('✅ Escena 3D inicializada');
+  // Touch events
+  zoomInBtn.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    performZoom('in');
+    zoomInterval = setInterval(() => performZoom('in'), 100);
+  });
+
+  zoomOutBtn.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    performZoom('out');
+    zoomInterval = setInterval(() => performZoom('out'), 100);
+  });
+
+  ['touchend', 'touchcancel'].forEach(event => {
+    zoomInBtn.addEventListener(event, () => {
+      if (zoomInterval) {
+        clearInterval(zoomInterval);
+        zoomInterval = null;
+      }
+    });
+
+    zoomOutBtn.addEventListener(event, () => {
+      if (zoomInterval) {
+        clearInterval(zoomInterval);
+        zoomInterval = null;
+      }
+    });
+  });
+
+  console.log('✅ Controles de zoom configurados');
 }
