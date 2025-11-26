@@ -24,14 +24,19 @@
 
   <main>
 
+    <!-- ===========================
+           SECTION: MODELO 3D
+    ============================ -->
     <section id="threejs-container">
 
       <article>
+        <!-- Botones de modelo -->
         <div class="model-controls">
           <button id="uploadModelBtn" class="model-btn">Cargar Modelo</button>
           <button id="deleteModelBtn" class="model-btn delete-btn">Eliminar Modelo</button>
         </div>
 
+        <!-- Botones de Zoom (ahora en esquina superior derecha) -->
         <div class="zoom-controls">
           <button id="zoomOutBtn" class="zoom-btn" title="Alejar (Zoom Out)">−</button>
           <button id="zoomInBtn" class="zoom-btn" title="Acercar (Zoom In)">+</button>
@@ -39,6 +44,7 @@
 
         <div class="zoom-indicator" id="zoomIndicator">100%</div>
 
+        <!-- ✅ NUEVO: Botón de Pantalla Completa -->
         <div class="fullscreen-controls">
           <button id="fullscreenBtn" class="fullscreen-btn" title="Pantalla completa">
             ⛶
@@ -49,6 +55,7 @@
 
         <canvas id="scene"></canvas>
 
+        <!-- Hotspots -->
         <div class="sensor-hotspot" style="top: 70%; left: 30%;" data-sensor="humidity" title="Sensor de Humedad"></div>
         <div class="sensor-hotspot" style="top: 75%; left: 50%;" data-sensor="ph" title="Sensor de pH"></div>
         <div class="sensor-hotspot" style="top: 72%; left: 70%;" data-sensor="temperature" title="Sensor de Temperatura"></div>
@@ -59,6 +66,10 @@
 
     <input type="file" id="model-input" accept=".gltf, .glb" style="display: none;">
 
+
+    <!-- ===========================
+           SECTION: PANEL DE SENSORES
+    ============================ -->
     <section id="sensor-panel">
 
       <article>
@@ -143,6 +154,7 @@
 
   </main>
 
+
   <div class="tooltip" id="tooltip">
     <h4>Sensor</h4>
     <p>Información del sensor</p>
@@ -162,8 +174,16 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-  <script src="js/app.js"></script>
+  
+  <!-- Scripts modulares -->
+  <script src="js/scene.js"></script>
+  <script src="js/camera.js"></script>
+  <script src="js/sensors.js"></script>
+  <script src="js/websocket.js"></script>
+  <script src="js/scroll.js"></script>
+  <script src="js/ui.js"></script>
   <script src="js/models.js"></script>
+  <script src="js/app.js"></script>
 
 </body>
 </html>
