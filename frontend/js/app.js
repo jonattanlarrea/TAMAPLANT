@@ -15,13 +15,18 @@ window.addEventListener('DOMContentLoaded', () => {
   // Configurar interactividad de sensores
   setupSensorInteractivity();
 
+  // Inicializar sistema de notificaciones de alertas
+  if (typeof initNotificationSystem === 'function') {
+    initNotificationSystem();
+  }
+
   // Configurar comportamiento de scroll
   setupScrollBehavior();
 
   // Configurar pantalla completa
   setupFullscreenControls();
 
-  // Configurar sistema de notificaciones
+  // Configurar sistema de notificaciones toast
   setupNotificationSystem();
 
   // Inicializar WebSocket

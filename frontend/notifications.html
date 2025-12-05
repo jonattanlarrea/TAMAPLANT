@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Historial de Alertas - TAMAPLANT</title>
+  <link rel="icon" type="image/png" href="assets/images/LogoTamaplant.png">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <header>
+    <div class="header-content">
+      <div class="header-left">
+        <img src="assets/images/LogoTamaplant.png" alt="Logo Tamaplant" class="header-logo">
+        <h1>TAMAPLANT</h1>
+      </div>
+      <nav class="header-nav">
+        <a href="index.html" class="nav-link">HOME</a>
+        <a href="about.html" class="nav-link">ABOUT</a>
+        <a href="notifications.html" class="nav-link active">ALERTAS</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="notifications-main">
+    
+    <div class="notifications-header">
+      <h2>HISTORIAL DE ALERTAS</h2>
+      <button id="markAllReadBtn" class="mark-all-btn">Marcar todas como leídas</button>
+    </div>
+
+    <!-- Filtros -->
+    <div class="filters-container">
+      <div class="filter-group">
+        <label for="filterSensor">Métrica:</label>
+        <select id="filterSensor" class="filter-select">
+          <option value="all">Todas</option>
+          <option value="temperature">Temperatura</option>
+          <option value="humidity">Humedad</option>
+          <option value="ph">pH</option>
+          <option value="light">Luminosidad</option>
+          <option value="pressure">Presión Atmosférica</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="filterStatus">Estado:</label>
+        <select id="filterStatus" class="filter-select">
+          <option value="all">Todos</option>
+          <option value="high">Por encima del máximo</option>
+          <option value="low">Por debajo del mínimo</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="filterTime">Período:</label>
+        <select id="filterTime" class="filter-select">
+          <option value="all">Todo el tiempo</option>
+          <option value="today">Hoy</option>
+          <option value="week">Última semana</option>
+          <option value="month">Último mes</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="filterRead">Lectura:</label>
+        <select id="filterRead" class="filter-select">
+          <option value="all">Todas</option>
+          <option value="unread">No leídas</option>
+          <option value="read">Leídas</option>
+        </select>
+      </div>
+
+      <button id="clearFiltersBtn" class="clear-filters-btn">Limpiar filtros</button>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-container">
+      <div class="stat-card">
+        <div class="stat-value" id="totalAlerts">0</div>
+        <div class="stat-label">Total de alertas</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="unreadAlerts">0</div>
+        <div class="stat-label">Sin leer</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="todayAlerts">0</div>
+        <div class="stat-label">Hoy</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="weekAlerts">0</div>
+        <div class="stat-label">Esta semana</div>
+      </div>
+    </div>
+
+    <!-- Lista de alertas -->
+    <div class="alerts-container" id="alertsContainer">
+      <div class="alerts-loading">
+        <div class="loading-spinner"></div>
+        <p>Cargando alertas...</p>
+      </div>
+    </div>
+
+    <!-- Paginación -->
+    <div class="pagination-container" id="paginationContainer">
+      <!-- Se genera dinámicamente -->
+    </div>
+
+  </main>
+
+  <footer>
+    <p>© 2025 Proyecto TAMAPLANT - Jonattan Larrea | Nelson Aravena</p>
+  </footer>
+
+  <script src="js/notifications-history.js"></script>
+
+</body>
+</html>

@@ -47,6 +47,7 @@ function normalizeSensorData(raw) {
     humidity: raw.soil_moisture,
     light: raw.lux,
     temperature: raw.temperature_ds18b20,
+    pressure: raw.pressure || raw.atmospheric_pressure
     // ph NO VIENE en el JSON → queda sin actualizar
   };
 }
@@ -111,12 +112,23 @@ function updateSensorData(data) {
         switch (sensorType) {
           case 'temperature':
             formattedValue = `${parseFloat(data[sensorType]).toFixed(1)}°C`;
-            if (data[sensorType] > 26) {
+            // Alertas críticas
+            if (data[sensorType] < 10) {
+              sensorCard.classList.add('alert', 'critical');
+              statusElement.className = 'sensor-status critical';
+              statusElement.textContent = '⚠️ CRÍTICO';
+            } else if (data[sensorType] > 35) {
+              sensorCard.classList.add('alert', 'critical');
+              statusElement.className = 'sensor-status critical';
+              statusElement.textContent = '⚠️ CRÍTICO';
+            }
+            // Alertas normales
+            else if (data[sensorType] < 15 || data[sensorType] > 30) {
               sensorCard.classList.add('alert');
               statusElement.className = 'sensor-status warning';
               statusElement.textContent = 'Alerta';
             } else {
-              sensorCard.classList.remove('alert');
+              sensorCard.classList.remove('alert', 'critical');
               statusElement.className = 'sensor-status';
               statusElement.textContent = 'Normal';
             }
@@ -124,12 +136,23 @@ function updateSensorData(data) {
 
           case 'humidity':
             formattedValue = `${Math.floor(data[sensorType])}%`;
-            if (data[sensorType] < 30 || data[sensorType] > 70) {
+            // Alertas críticas
+            if (data[sensorType] < 15) {
+              sensorCard.classList.add('alert', 'critical');
+              statusElement.className = 'sensor-status critical';
+              statusElement.textContent = '⚠️ MUY SECO';
+            } else if (data[sensorType] > 60) {
+              sensorCard.classList.add('alert', 'critical');
+              statusElement.className = 'sensor-status critical';
+              statusElement.textContent = '⚠️ EXCESO';
+            }
+            // Alertas normales
+            else if (data[sensorType] < 20 || data[sensorType] > 40) {
               sensorCard.classList.add('alert');
               statusElement.className = 'sensor-status warning';
               statusElement.textContent = 'Revisar';
             } else {
-              sensorCard.classList.remove('alert');
+              sensorCard.classList.remove('alert', 'critical');
               statusElement.className = 'sensor-status';
               statusElement.textContent = 'Normal';
             }
@@ -137,24 +160,87 @@ function updateSensorData(data) {
 
           case 'ph':
             formattedValue = parseFloat(data[sensorType]).toFixed(1);
-            if (data[sensorType] < 6.0 || data[sensorType] > 7.5) {
+            // Alertas críticas
+            if (data[sensorType] < 5.5) {
+              sensorCard.classList.add('alert', 'critical');
+              statusElement.className = 'sensor-status critical';
+              statusElement.textContent = '⚠️ MUY ÁCIDO';
+            } else if (data[sensorType] > 7.5) {
+              sensorCard.classList.add('alert', 'critical');
+              statusElement.className = 'sensor-status critical';
+              statusElement.textContent = '⚠️ MUY ALCALINO';
+            }
+            // Alertas normales
+            else if (data[sensorType] < 6.0 || data[sensorType] > 7.0) {
               sensorCard.classList.add('alert');
               statusElement.className = 'sensor-status warning';
               statusElement.textContent = 'Fuera de rango';
             } else {
-              sensorCard.classList.remove('alert');
+              sensorCard.classList.remove('alert', 'critical');
               statusElement.className = 'sensor-status';
-              statusElement.textContent = 'Normal';
+              statusElement.textContent = 'Óptimo';
             }
             break;
 
           case 'light':
             formattedValue = `${Math.floor(data[sensorType])} lux`;
+            // Alertas críticas
+            if (data[sensorType] < 5000) {
+              sensorCard.classList.add('alert', 'critical');
+              statusElement.className = 'sensor-status critical';
+              statusElement.textContent = '⚠️ POCA LUZ';
+            } else if (data[sensorType] > 70000) {
+              sensorCard.classList.add('alert', 'critical');
+              statusElement.className = 'sensor-status critical';
+              statusElement.textContent = '⚠️ EXCESO';
+            }
+            // Alertas normales
+            else if (data[sensorType] < 10000 || data[sensorType] > 50000) {
+              sensorCard.classList.add('alert');
+              statusElement.className = 'sensor-status warning';
+              statusElement.textContent = 'Subóptimo';
+            } else {
+              sensorCard.classList.remove('alert', 'critical');
+              statusElement.className = 'sensor-status';
+              statusElement.textContent = 'Ideal';
+            }
+            break;
+
+          case 'pressure':
+            formattedValue = `${parseFloat(data[sensorType]).toFixed(1)} hPa`;
+            // Alertas críticas
+            if (data[sensorType] < 980) {
+              sensorCard.classList.add('alert', 'critical');
+              statusElement.className = 'sensor-status critical';
+              statusElement.textContent = '⚠️ TORMENTA';
+            } else if (data[sensorType] > 1040) {
+              sensorCard.classList.add('alert', 'critical');
+              statusElement.className = 'sensor-status critical';
+              statusElement.textContent = '⚠️ MUY ALTA';
+            }
+            // Alertas normales
+            else if (data[sensorType] < 1000 || data[sensorType] > 1020) {
+              sensorCard.classList.add('alert');
+              statusElement.className = 'sensor-status warning';
+              statusElement.textContent = 'Inestable';
+            } else {
+              sensorCard.classList.remove('alert', 'critical');
+              statusElement.className = 'sensor-status';
+              statusElement.textContent = 'Normal';
+            }
             break;
         }
 
         valueElement.textContent = formattedValue;
         valueElement.style.opacity = '1';
+
+        // Verificar umbrales y crear alerta si es necesario
+        if (typeof window.checkThreshold === 'function') {
+          const threshold = window.checkThreshold(sensorType, data[sensorType]);
+          if (threshold && typeof window.createAlert === 'function') {
+            window.createAlert(sensorType, formattedValue, threshold);
+          }
+        }
       }, 300);
     }
   });
