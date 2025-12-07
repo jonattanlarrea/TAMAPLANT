@@ -5,6 +5,12 @@ function setupSensorInteractivity() {
   const hotspots = document.querySelectorAll('.sensor-hotspot');
   const tooltip = document.getElementById('tooltip');
 
+  // Asegurar que el tooltip esté visible
+  if (tooltip) {
+    tooltip.style.position = 'fixed';
+    tooltip.style.zIndex = '99999';
+  }
+
   // Interactividad de tarjetas de sensores
   sensors.forEach(sensor => {
     sensor.addEventListener('click', () => {
@@ -43,8 +49,8 @@ function setupSensorInteractivity() {
         tooltip.querySelector('p').textContent = `Valor actual: ${value}`;
         tooltip.classList.add('show');
 
-        tooltip.style.left = e.pageX + 10 + 'px';
-        tooltip.style.top = e.pageY + 10 + 'px';
+        // Posicionar tooltip
+        positionTooltip(e);
       }
     });
 
@@ -53,10 +59,32 @@ function setupSensorInteractivity() {
     });
 
     hotspot.addEventListener('mousemove', e => {
-      tooltip.style.left = e.pageX + 10 + 'px';
-      tooltip.style.top = e.pageY + 10 + 'px';
+      if (tooltip.classList.contains('show')) {
+        positionTooltip(e);
+      }
     });
   });
+
+  // Función para posicionar el tooltip correctamente en cualquier modo
+  function positionTooltip(e) {
+    const offset = 15;
+    let left = e.clientX + offset;
+    let top = e.clientY + offset;
+
+    // Ajustar si se sale de la pantalla
+    const tooltipRect = tooltip.getBoundingClientRect();
+    
+    if (left + tooltipRect.width > window.innerWidth) {
+      left = e.clientX - tooltipRect.width - offset;
+    }
+    
+    if (top + tooltipRect.height > window.innerHeight) {
+      top = e.clientY - tooltipRect.height - offset;
+    }
+
+    tooltip.style.left = left + 'px';
+    tooltip.style.top = top + 'px';
+  }
 
   console.log('✅ Interactividad de sensores configurada');
 }
