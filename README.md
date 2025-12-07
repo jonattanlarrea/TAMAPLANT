@@ -1,6 +1,6 @@
 <div align="center">
-  <img src="assets/images/LogoTamaplant.png" alt="TAMAPLANT Logo" width="200"/>
-  <h1>🌱 TAMAPLANT</h1>
+  <img src="./assets/images/LogoTamaplant.png" alt="TAMAPLANT Logo" width="200"/>
+  <h1>TAMAPLANT</h1>
   <p><strong>Sistema de monitoreo inteligente de plantas con visualización 3D en tiempo real</strong></p>
 </div>
 
