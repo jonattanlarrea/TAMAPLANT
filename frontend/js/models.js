@@ -131,6 +131,9 @@ function setupModelButtons() {
     return;
   }
 
+  // Variable para prevenir múltiples clics
+  let isDeleting = false;
+
   // Botón para abrir el selector de archivos
   uploadBtn.addEventListener('click', () => {
     fileInput.click();
@@ -192,7 +195,15 @@ function setupModelButtons() {
 
   // Botón para eliminar el modelo actual
   deleteBtn.addEventListener('click', () => {
+    // Prevenir múltiples clics
+    if (isDeleting) {
+      console.log('⚠️ Ya hay una operación de eliminación en proceso');
+      return;
+    }
+
     if (window.loadedPlant) {
+      isDeleting = true;
+
       if (typeof showConfirmModal === 'function') {
         showConfirmModal(
           '¿Eliminar modelo?',
@@ -206,16 +217,21 @@ function setupModelButtons() {
                 'success'
               );
             }
+            isDeleting = false;
           },
           () => {
             console.log('Eliminación cancelada');
+            isDeleting = false;
           }
-        );
+        ).finally(() => {
+          isDeleting = false;
+        });
       } else {
         const confirmDelete = confirm("¿Estás seguro de eliminar el modelo actual?");
         if (confirmDelete) {
           removeCurrentModel();
         }
+        isDeleting = false;
       }
     } else {
       if (typeof showNotification === 'function') {

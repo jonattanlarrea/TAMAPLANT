@@ -65,6 +65,10 @@ window.showConfirmModal = function (title, message, onConfirm, onCancel) {
   return new Promise((resolve) => {
     const overlay = document.createElement('div');
     overlay.className = 'modal-overlay';
+    
+    // Asegurar que el modal sea visible en fullscreen
+    overlay.style.position = 'fixed';
+    overlay.style.zIndex = '999999';
 
     overlay.innerHTML = `
       <div class="modal-content">
@@ -81,6 +85,9 @@ window.showConfirmModal = function (title, message, onConfirm, onCancel) {
     `;
 
     document.body.appendChild(overlay);
+
+    // Forzar reflow para asegurar que se renderice
+    overlay.offsetHeight;
 
     const confirmBtn = overlay.querySelector('.modal-btn-confirm');
     const cancelBtn = overlay.querySelector('.modal-btn-cancel');
