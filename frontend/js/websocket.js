@@ -2,7 +2,7 @@
 
 let ws = null;
 let reconnectInterval = null;
-const WS_URL = 'wss://tamaplant.me:8443';
+const WS_URL = 'wss://tamaplant.me/ws/';
 
 const connectionStatus = document.createElement('div');
 connectionStatus.style.cssText = `
