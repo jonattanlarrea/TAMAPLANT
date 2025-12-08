@@ -53,7 +53,7 @@ function normalizeSensorData(raw) {
   return {
     airTemperature: raw.temperature_bmp ?? null,
     soilTemperature: raw.temperature_ds18b20 ?? null,
-    soilHumidity: raw.soil_moisture_percent ?? null,
+    humidity: raw.soil_moisture_percent ?? null,
     light: raw.lux ?? null,
     pressure: raw.pressure ?? null
   };
@@ -186,7 +186,7 @@ function updateSensorData(data) {
             }
             break;
 
-          case 'soilHumidity':
+          case 'humidity':
             formattedValue = `${Math.floor(data[sensorType])}%`;
             // Alertas críticas
             if (data[sensorType] < 15) {
