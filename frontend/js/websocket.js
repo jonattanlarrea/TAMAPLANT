@@ -2,7 +2,9 @@
 
 let ws = null;
 let reconnectInterval = null;
-const WS_URL = 'wss://tamaplant.me/ws/';
+let reconnectAttempts = 0;
+const MAX_RECONNECT_ATTEMPTS = 5;
+const WS_URL = 'ws://tamapla1.sytes.net:8080';
 
 const connectionStatus = document.createElement('div');
 connectionStatus.style.cssText = `
@@ -34,6 +36,11 @@ function updateConnectionStatus(status, message) {
     connectionStatus.style.color = '#121A14';
     connectionStatus.innerHTML = dot + message;
     connectionStatus.querySelector('span').style.backgroundColor = '#FFD700';
+  } else if (status === 'failed') {
+    connectionStatus.style.backgroundColor = '#8B4513';
+    connectionStatus.style.color = '#E6E6E6';
+    connectionStatus.innerHTML = dot + message;
+    connectionStatus.querySelector('span').style.backgroundColor = '#D2691E';
   } else {
     connectionStatus.style.backgroundColor = '#C62828';
     connectionStatus.style.color = '#E6E6E6';
@@ -53,18 +60,54 @@ function normalizeSensorData(raw) {
 }
 
 function connectWebSocket() {
-  updateConnectionStatus('connecting', 'Conectando...');
+  // Verificar si se alcanzó el límite de intentos
+  if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+    updateConnectionStatus('failed', `Conexión fallida (${MAX_RECONNECT_ATTEMPTS} intentos)`);
+    console.error(`❌ Máximo de intentos de reconexión alcanzado (${MAX_RECONNECT_ATTEMPTS})`);
+    
+    if (reconnectInterval) {
+      clearInterval(reconnectInterval);
+      reconnectInterval = null;
+    }
+    
+    if (typeof showNotification === 'function') {
+      showNotification(
+        'Conexión Fallida',
+        `No se pudo conectar después de ${MAX_RECONNECT_ATTEMPTS} intentos. Recarga la página para intentar nuevamente.`,
+        'error',
+        0 // No auto-cerrar
+      );
+    }
+    
+    return;
+  }
+
+  reconnectAttempts++;
+  updateConnectionStatus('connecting', `Conectando... (intento ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})`);
+  console.log(`🔄 Intento de conexión ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS}`);
 
   try {
     ws = new WebSocket(WS_URL);
 
     ws.onopen = () => {
-      console.log('WebSocket conectado');
+      console.log('✅ WebSocket conectado');
       updateConnectionStatus('connected', 'Conectado a ESP32');
+      
+      // Resetear contador de intentos al conectar exitosamente
+      reconnectAttempts = 0;
 
       if (reconnectInterval) {
         clearInterval(reconnectInterval);
         reconnectInterval = null;
+      }
+
+      if (typeof showNotification === 'function') {
+        showNotification(
+          'Conexión Establecida',
+          'Conectado al sistema de sensores',
+          'success',
+          3000
+        );
       }
     };
 
@@ -74,24 +117,32 @@ function connectWebSocket() {
         const normalized = normalizeSensorData(raw);
         updateSensorData(normalized);
       } catch (e) {
-        console.error("Error procesando JSON:", e);
+        console.error("❌ Error procesando JSON:", e);
       }
     };
 
-    ws.onerror = () => {
+    ws.onerror = (error) => {
+      console.error('❌ Error de WebSocket:', error);
       updateConnectionStatus('error', 'Error de conexión');
     };
 
     ws.onclose = () => {
-      updateConnectionStatus('error', 'Desconectado');
+      console.log('🔌 WebSocket desconectado');
+      
+      if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+        updateConnectionStatus('error', 'Desconectado - Reintentando...');
 
-      if (!reconnectInterval) {
-        reconnectInterval = setInterval(() => {
-          connectWebSocket();
-        }, 5000);
+        if (!reconnectInterval) {
+          reconnectInterval = setInterval(() => {
+            connectWebSocket();
+          }, 5000);
+        }
+      } else {
+        updateConnectionStatus('failed', `Conexión fallida (${MAX_RECONNECT_ATTEMPTS} intentos)`);
       }
     };
   } catch (error) {
+    console.error('❌ Error creando WebSocket:', error);
     updateConnectionStatus('error', 'No se pudo conectar');
   }
 }
@@ -258,16 +309,26 @@ function refreshData() {
         3000
       );
     }
-    console.log('Solicitando actualización de datos...');
+    console.log('📡 Solicitando actualización de datos...');
   } else {
-    if (typeof showNotification === 'function') {
-      showNotification(
-        'Sin conexión',
-        'WebSocket no conectado. Intentando reconectar...',
-        'warning'
-      );
+    if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+      if (typeof showNotification === 'function') {
+        showNotification(
+          'Sin conexión',
+          'Se alcanzó el límite de intentos. Recarga la página para reconectar.',
+          'error'
+        );
+      }
+    } else {
+      if (typeof showNotification === 'function') {
+        showNotification(
+          'Sin conexión',
+          'WebSocket no conectado. Intentando reconectar...',
+          'warning'
+        );
+      }
+      connectWebSocket();
     }
-    connectWebSocket();
   }
 }
 
