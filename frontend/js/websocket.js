@@ -53,7 +53,7 @@ function normalizeSensorData(raw) {
   return {
     airTemperature: raw.temperature_bmp ?? null,
     soilTemperature: raw.temperature_ds18b20 ?? null,
-    soilHumidity: raw.soil_moisture_percent ?? null, 
+    soilHumidity: raw.soil_moisture_raw ?? null, 
     light: raw.lux ?? null,                           
     pressure: raw.pressure ?? null                     
   };
