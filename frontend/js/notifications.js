@@ -15,10 +15,10 @@ const THRESHOLDS = {
     critical_high: 60     // Peligro: pudrición de raíces
   },
   soilTemperature: {
-    min: 6.0,             // Ligeramente ácido
-    max: 7.0,             // Neutro
-    critical_low: 5.5,    // Muy ácido
-    critical_high: 7.5    // Muy alcalino
+    min: 15,             // Mínimo para crecimiento saludable
+    max: 25,             // Máximo tolerable sin estrés
+    critical_low: 10,    // Daño severo por
+    critical_high: 30    // Peligro de deshidratación
   },
   light: {
     min: 10000,           // Luz brillante indirecta (4-6h/día)
