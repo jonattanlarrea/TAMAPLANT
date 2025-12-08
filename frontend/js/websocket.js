@@ -51,13 +51,14 @@ function updateConnectionStatus(status, message) {
 
 function normalizeSensorData(raw) {
   return {
-    humidity: raw.soil_moisture,
-    light: raw.lux,
-    temperature: raw.temperature_ds18b20,
-    pressure: raw.pressure || raw.atmospheric_pressure
-    // ph NO VIENE en el JSON → queda sin actualizar
+    airTemperature: raw.temperature_bmp ?? null,
+    soilTemperature: raw.temperature_ds18b20 ?? null,
+    soilHumidity: raw.soil_moisture_percent ?? null, 
+    light: raw.lux ?? null,                           
+    pressure: raw.pressure ?? null                     
   };
 }
+
 
 function connectWebSocket() {
   // Verificar si se alcanzó el límite de intentos
@@ -209,7 +210,7 @@ function updateSensorData(data) {
             }
             break;
 
-          case 'ph':
+          case 'soilTemperature':
             formattedValue = parseFloat(data[sensorType]).toFixed(1);
             // Alertas críticas
             if (data[sensorType] < 5.5) {

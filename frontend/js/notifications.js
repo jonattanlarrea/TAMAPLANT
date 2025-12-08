@@ -14,7 +14,7 @@ const THRESHOLDS = {
     critical_low: 15,     // Alerta: planta sedienta
     critical_high: 60     // Peligro: pudrición de raíces
   },
-  ph: {
+  soilTemperature: {
     min: 6.0,             // Ligeramente ácido
     max: 7.0,             // Neutro
     critical_low: 5.5,    // Muy ácido
@@ -102,9 +102,9 @@ function checkThreshold(sensorType, value) {
 // Crear una nueva alerta
 function createAlert(sensorType, value, threshold) {
   const sensorNames = {
-    temperature: 'Temperatura',
+    temperature: 'Temperatura del aire',
     humidity: 'Humedad del Suelo',
-    ph: 'pH del Suelo',
+    soilTemperature: 'Temperatura del Suelo',
     light: 'Luminosidad',
     pressure: 'Presión Atmosférica'
   };
