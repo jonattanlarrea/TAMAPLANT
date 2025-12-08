@@ -4,7 +4,7 @@ let ws = null;
 let reconnectInterval = null;
 let reconnectAttempts = 0;
 const MAX_RECONNECT_ATTEMPTS = 5;
-const WS_URL = 'wss://tamaplant.me:8443';
+const WS_URL = 'wss://tamaplant.me';
 
 const connectionStatus = document.createElement('div');
 connectionStatus.style.cssText = `
