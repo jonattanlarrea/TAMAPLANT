@@ -53,9 +53,9 @@ function normalizeSensorData(raw) {
   return {
     airTemperature: raw.temperature_bmp ?? null,
     soilTemperature: raw.temperature_ds18b20 ?? null,
-    soilHumidity: raw.soil_moisture_raw ?? null, 
-    light: raw.lux ?? null,                           
-    pressure: raw.pressure ?? null                     
+    soilHumidity: raw.soil_moisture_percent ?? null,
+    light: raw.lux ?? null,
+    pressure: raw.pressure ?? null
   };
 }
 
@@ -65,12 +65,12 @@ function connectWebSocket() {
   if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
     updateConnectionStatus('failed', `Conexión fallida (${MAX_RECONNECT_ATTEMPTS} intentos)`);
     console.error(`❌ Máximo de intentos de reconexión alcanzado (${MAX_RECONNECT_ATTEMPTS})`);
-    
+
     if (reconnectInterval) {
       clearInterval(reconnectInterval);
       reconnectInterval = null;
     }
-    
+
     if (typeof showNotification === 'function') {
       showNotification(
         'Conexión Fallida',
@@ -79,7 +79,7 @@ function connectWebSocket() {
         0 // No auto-cerrar
       );
     }
-    
+
     return;
   }
 
@@ -93,7 +93,7 @@ function connectWebSocket() {
     ws.onopen = () => {
       console.log('✅ WebSocket conectado');
       updateConnectionStatus('connected', 'Conectado a ESP32');
-      
+
       // Resetear contador de intentos al conectar exitosamente
       reconnectAttempts = 0;
 
@@ -129,7 +129,7 @@ function connectWebSocket() {
 
     ws.onclose = () => {
       console.log('🔌 WebSocket desconectado');
-      
+
       if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
         updateConnectionStatus('error', 'Desconectado - Reintentando...');
 
@@ -186,7 +186,7 @@ function updateSensorData(data) {
             }
             break;
 
-          case 'humidity':
+          case 'soilHumidity':
             formattedValue = `${Math.floor(data[sensorType])}%`;
             // Alertas críticas
             if (data[sensorType] < 15) {
@@ -197,9 +197,7 @@ function updateSensorData(data) {
               sensorCard.classList.add('alert', 'critical');
               statusElement.className = 'sensor-status critical';
               statusElement.textContent = '⚠️ EXCESO';
-            }
-            // Alertas normales
-            else if (data[sensorType] < 20 || data[sensorType] > 40) {
+            } else if (data[sensorType] < 20 || data[sensorType] > 40) {
               sensorCard.classList.add('alert');
               statusElement.className = 'sensor-status warning';
               statusElement.textContent = 'Revisar';
