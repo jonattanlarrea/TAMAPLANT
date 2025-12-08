@@ -2,7 +2,7 @@
 
 let ws = null;
 let reconnectInterval = null;
-const WS_URL = 'ws://tamapla1.sytes.net:8080';
+const WS_URL = 'wss://tamaplant.me:8080';
 
 const connectionStatus = document.createElement('div');
 connectionStatus.style.cssText = `
