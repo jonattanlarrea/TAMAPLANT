@@ -15,7 +15,7 @@ const THRESHOLDS = {
     critical_high: 60     // Peligro: pudrición de raíces
   },
   soilTemperature: {
-    min: 15,             // Mínimo para crecimiento saludable
+    min: 18,             // Mínimo para crecimiento saludable
     max: 25,             // Máximo tolerable sin estrés
     critical_low: 10,    // Daño severo por
     critical_high: 30    // Peligro de deshidratación
@@ -102,7 +102,7 @@ function checkThreshold(sensorType, value) {
 // Crear una nueva alerta
 function createAlert(sensorType, value, threshold) {
   const sensorNames = {
-    temperature: 'Temperatura del aire',
+    temperature: 'Temperatura del Aire',
     humidity: 'Humedad del Suelo',
     soilTemperature: 'Temperatura del Suelo',
     light: 'Luminosidad',
