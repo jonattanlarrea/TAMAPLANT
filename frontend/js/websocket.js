@@ -51,7 +51,7 @@ function updateConnectionStatus(status, message) {
 
 function normalizeSensorData(raw) {
   return {
-    airTemperature: raw.temperature_bmp ?? null,
+    temperature: raw.temperature_bmp ?? null,
     soilTemperature: raw.temperature_ds18b20 ?? null,
     humidity: raw.soil_moisture_percent ?? null,
     light: raw.lux ?? null,
