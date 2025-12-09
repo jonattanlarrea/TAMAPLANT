@@ -209,26 +209,31 @@ function updateSensorData(data) {
             break;
 
           case 'soilTemperature':
-            formattedValue = parseFloat(data[sensorType]).toFixed(1);
+            formattedValue = `${parseFloat(data[sensorType]).toFixed(1)}°C`;
+            const descriptionElement = sensorCard.querySelector('.sensor-description');
+
             // Alertas críticas
-            if (data[sensorType] < 5.5) {
+            if (data[sensorType] < 10) {
               sensorCard.classList.add('alert', 'critical');
               statusElement.className = 'sensor-status critical';
-              statusElement.textContent = '⚠️ MUY ÁCIDO';
-            } else if (data[sensorType] > 7.5) {
+              statusElement.textContent = '⚠️ MUY FRÍO';
+            } else if (data[sensorType] > 30) {
               sensorCard.classList.add('alert', 'critical');
               statusElement.className = 'sensor-status critical';
-              statusElement.textContent = '⚠️ MUY ALCALINO';
+              statusElement.textContent = '⚠️ MUY CALIENTE';
+              descriptionElement.textContent = 'Suelo extremadamente caliente'
             }
             // Alertas normales
-            else if (data[sensorType] < 6.0 || data[sensorType] > 7.0) {
+            else if (data[sensorType] < 18 || data[sensorType] > 25) {
               sensorCard.classList.add('alert');
               statusElement.className = 'sensor-status warning';
               statusElement.textContent = 'Fuera de rango';
+              descriptionElement.textContent = 'Temperatura del suelo óptima'
             } else {
               sensorCard.classList.remove('alert', 'critical');
               statusElement.className = 'sensor-status';
               statusElement.textContent = 'Óptimo';
+              descriptionElement.textContent = 'Temperatura óptima del suelo'
             }
             break;
 
