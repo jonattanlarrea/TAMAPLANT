@@ -1,6 +1,6 @@
-// notifications-history.js - Página de historial completo de alertas
+// notifications_history.js - Página de historial completo de alertas
 
-const ALERTS_PER_PAGE = 15;
+let ALERTS_PER_PAGE = 10;
 let currentPage = 1;
 let filteredAlerts = [];
 let allAlerts = [];
@@ -9,11 +9,22 @@ let allAlerts = [];
 function loadAlerts() {
   try {
     const stored = localStorage.getItem('tamaplant_alert_history');
-    allAlerts = stored ? JSON.parse(stored) : [];
+    console.log('📦 Datos cargados de localStorage:', stored);
+    
+    if (stored) {
+      allAlerts = JSON.parse(stored);
+      console.log(`✅ ${allAlerts.length} alertas cargadas`);
+    } else {
+      console.log('⚠️ No hay alertas guardadas en localStorage');
+      allAlerts = [];
+    }
+    
     filteredAlerts = [...allAlerts];
     return allAlerts;
   } catch (e) {
-    console.error('Error cargando alertas:', e);
+    console.error('❌ Error cargando alertas:', e);
+    allAlerts = [];
+    filteredAlerts = [];
     return [];
   }
 }
@@ -22,8 +33,9 @@ function loadAlerts() {
 function saveAlerts() {
   try {
     localStorage.setItem('tamaplant_alert_history', JSON.stringify(allAlerts));
+    console.log('💾 Alertas guardadas correctamente');
   } catch (e) {
-    console.error('Error guardando alertas:', e);
+    console.error('❌ Error guardando alertas:', e);
   }
 }
 
@@ -62,7 +74,7 @@ function getSensorIcon(sensorType) {
   const icons = {
     temperature: '🌡️',
     humidity: '💧',
-    ph: '⚗️',
+    soilTemperature: '🌡️',
     light: '☀️',
     pressure: '🔘'
   };
@@ -76,18 +88,14 @@ function applyFilters() {
   const timeFilter = document.getElementById('filterTime').value;
   const readFilter = document.getElementById('filterRead').value;
 
+  console.log('🔍 Aplicando filtros:', { sensorFilter, statusFilter, timeFilter, readFilter });
+
   filteredAlerts = allAlerts.filter(alert => {
-    // Filtro de sensor
     if (sensorFilter !== 'all' && alert.sensorType !== sensorFilter) return false;
-
-    // Filtro de estado
     if (statusFilter !== 'all' && alert.threshold !== statusFilter) return false;
-
-    // Filtro de lectura
     if (readFilter === 'read' && !alert.read) return false;
     if (readFilter === 'unread' && alert.read) return false;
 
-    // Filtro de tiempo
     if (timeFilter !== 'all') {
       const alertDate = new Date(alert.timestamp);
       const now = new Date();
@@ -102,6 +110,8 @@ function applyFilters() {
 
     return true;
   });
+
+  console.log(`✅ Filtro aplicado: ${filteredAlerts.length} de ${allAlerts.length} alertas`);
 
   currentPage = 1;
   renderAlerts();
@@ -121,12 +131,18 @@ function clearFilters() {
 function renderAlerts() {
   const container = document.getElementById('alertsContainer');
   
+  console.log('🎨 Renderizando alertas...');
+  
   if (filteredAlerts.length === 0) {
+    console.log('⚠️ No hay alertas para mostrar');
     container.innerHTML = `
       <div class="alerts-empty">
         <div class="empty-icon">🔔</div>
         <h3>No hay alertas</h3>
         <p>No se encontraron alertas con los filtros seleccionados</p>
+        <button onclick="window.location.href='index.html'" style="margin-top: 1rem; padding: 0.75rem 1.5rem; background: #3CB371; color: #E6E6E6; border: none; border-radius: 8px; cursor: pointer;">
+          Volver al inicio
+        </button>
       </div>
     `;
     return;
@@ -136,9 +152,11 @@ function renderAlerts() {
   const endIndex = startIndex + ALERTS_PER_PAGE;
   const pageAlerts = filteredAlerts.slice(startIndex, endIndex);
 
+  console.log(`📄 Mostrando alertas ${startIndex + 1} a ${Math.min(endIndex, filteredAlerts.length)} de ${filteredAlerts.length}`);
+
   container.innerHTML = pageAlerts.map(alert => {
     const icon = getSensorIcon(alert.sensorType);
-    const statusClass = alert.threshold === 'high' ? 'alert-high' : 'alert-low';
+    const statusClass = alert.threshold === 'high' || alert.threshold === 'critical_high' ? 'alert-high' : 'alert-low';
     const readClass = alert.read ? 'read' : 'unread';
     
     return `
@@ -160,7 +178,6 @@ function renderAlerts() {
     `;
   }).join('');
 
-  // Agregar event listeners
   container.querySelectorAll('.alert-item-full').forEach(item => {
     item.addEventListener('click', () => {
       const alertId = parseFloat(item.dataset.alertId);
@@ -186,6 +203,7 @@ function markAllAsRead() {
   allAlerts.forEach(alert => alert.read = true);
   saveAlerts();
   renderAlerts();
+  console.log('✅ Todas las alertas marcadas como leídas');
 }
 
 // Renderizar paginación
@@ -193,12 +211,15 @@ function renderPagination() {
   const container = document.getElementById('paginationContainer');
   const totalPages = Math.ceil(filteredAlerts.length / ALERTS_PER_PAGE);
 
-  if (totalPages <= 1) {
+  if (filteredAlerts.length === 0) {
     container.innerHTML = '';
     return;
   }
 
-  let paginationHTML = '<div class="pagination">';
+  let paginationHTML = '<div class="pagination-wrapper">';
+  
+  // Contenedor de botones de página
+  paginationHTML += '<div class="pagination">';
 
   // Botón anterior
   paginationHTML += `
@@ -250,7 +271,23 @@ function renderPagination() {
     </button>
   `;
 
-  paginationHTML += '</div>';
+  paginationHTML += '</div>'; // Cierra .pagination
+
+  // Selector de cantidad de alertas por página
+  paginationHTML += `
+    <div class="alerts-per-page">
+      <label for="alertsPerPageSelect">Mostrar:</label>
+      <select id="alertsPerPageSelect" class="alerts-per-page-select" onchange="changeAlertsPerPage(this.value)">
+        <option value="10" ${ALERTS_PER_PAGE === 10 ? 'selected' : ''}>10 alertas</option>
+        <option value="30" ${ALERTS_PER_PAGE === 30 ? 'selected' : ''}>30 alertas</option>
+        <option value="50" ${ALERTS_PER_PAGE === 50 ? 'selected' : ''}>50 alertas</option>
+        <option value="100" ${ALERTS_PER_PAGE === 100 ? 'selected' : ''}>100 alertas</option>
+      </select>
+    </div>
+  `;
+
+  paginationHTML += '</div>'; // Cierra .pagination-wrapper
+
   container.innerHTML = paginationHTML;
 }
 
@@ -263,8 +300,16 @@ function changePage(page) {
   renderAlerts();
   renderPagination();
   
-  // Scroll al inicio
   window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// Cambiar cantidad de alertas por página
+function changeAlertsPerPage(value) {
+  ALERTS_PER_PAGE = parseInt(value);
+  currentPage = 1;
+  console.log(`📊 Mostrando ${ALERTS_PER_PAGE} alertas por página`);
+  renderAlerts();
+  renderPagination();
 }
 
 // Actualizar estadísticas
@@ -273,20 +318,30 @@ function updateStats() {
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
-  document.getElementById('totalAlerts').textContent = allAlerts.length;
-  document.getElementById('unreadAlerts').textContent = allAlerts.filter(a => !a.read).length;
-  document.getElementById('todayAlerts').textContent = allAlerts.filter(a => new Date(a.timestamp) >= today).length;
-  document.getElementById('weekAlerts').textContent = allAlerts.filter(a => new Date(a.timestamp) >= weekAgo).length;
+  const stats = {
+    total: allAlerts.length,
+    unread: allAlerts.filter(a => !a.read).length,
+    today: allAlerts.filter(a => new Date(a.timestamp) >= today).length,
+    week: allAlerts.filter(a => new Date(a.timestamp) >= weekAgo).length
+  };
+
+  console.log('📊 Estadísticas:', stats);
+
+  document.getElementById('totalAlerts').textContent = stats.total;
+  document.getElementById('unreadAlerts').textContent = stats.unread;
+  document.getElementById('todayAlerts').textContent = stats.today;
+  document.getElementById('weekAlerts').textContent = stats.week;
 }
 
 // Inicializar
 window.addEventListener('DOMContentLoaded', () => {
+  console.log('🚀 Inicializando página de historial de alertas...');
+  
   loadAlerts();
   renderAlerts();
   renderPagination();
   updateStats();
 
-  // Event listeners de filtros
   document.getElementById('filterSensor').addEventListener('change', applyFilters);
   document.getElementById('filterStatus').addEventListener('change', applyFilters);
   document.getElementById('filterTime').addEventListener('change', applyFilters);
@@ -297,5 +352,6 @@ window.addEventListener('DOMContentLoaded', () => {
   console.log('✅ Página de historial de alertas inicializada');
 });
 
-// Hacer función global
+// Hacer funciones globales
 window.changePage = changePage;
+window.changeAlertsPerPage = changeAlertsPerPage;
