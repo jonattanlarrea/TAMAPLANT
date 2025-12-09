@@ -52,18 +52,25 @@ function updateConnectionStatus(status, message) {
   }
 }
 
-// ✅ FUNCIÓN AUTO-CALIBRACIÓN SOIL MOISTURE
+// ✅ FUNCIÓN AUTO-CALIBRACIÓN ESTABILIZADA
 function soilToPercentAdaptive(rawValue) {
   soilHistory.push(rawValue);
-  if (soilHistory.length > 100) soilHistory.shift(); // Últimos 100 valores
+  if (soilHistory.length > 200) soilHistory.shift(); // Más muestras = más estable
   
-  const minSoil = Math.min(...soilHistory);
-  const maxSoil = Math.max(...soilHistory);
+  // Usar percentil 10% y 90% (ignora picos extremos)
+  const sorted = [...soilHistory].sort((a,b) => a-b);
+  const minSoil = sorted[Math.floor(sorted.length * 0.1)];  // Percentil 10%
+  const maxSoil = sorted[Math.floor(sorted.length * 0.9)];  // Percentil 90%
+  
+  if (maxSoil === minSoil) return 50; // Evitar división por cero
+  
   const humedad = ((maxSoil - rawValue) / (maxSoil - minSoil)) * 100;
+  const percent = Math.max(0, Math.min(100, Math.round(humedad)));
   
-  console.log(`🟤 SOIL RAW: ${rawValue} | Min:${minSoil} Max:${maxSoil} | %: ${Math.round(humedad)}%`);
-  return Math.max(0, Math.min(100, Math.round(humedad)));
+  console.log(`🟤 SOIL: ${rawValue} | Rango:[${minSoil}-${maxSoil}] | ${percent}%`);
+  return percent;
 }
+
 
 function normalizeSensorData(raw) {
   return {
