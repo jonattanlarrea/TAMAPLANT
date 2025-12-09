@@ -82,6 +82,7 @@ function getSensorIcon(sensorType) {
 }
 
 // Aplicar filtros
+// Aplicar filtros
 function applyFilters() {
   const sensorFilter = document.getElementById('filterSensor').value;
   const statusFilter = document.getElementById('filterStatus').value;
@@ -91,21 +92,18 @@ function applyFilters() {
   console.log('🔍 Aplicando filtros:', { sensorFilter, statusFilter, timeFilter, readFilter });
 
   filteredAlerts = allAlerts.filter(alert => {
+    // Filtro de sensor
     if (sensorFilter !== 'all' && alert.sensorType !== sensorFilter) return false;
-    if (statusFilter !== 'all' && alert.threshold !== statusFilter) return false;
-    if (readFilter === 'read' && !alert.read) return false;
-    if (readFilter === 'unread' && alert.read) return false;
-
-    if (timeFilter !== 'all') {
-      const alertDate = new Date(alert.timestamp);
-      const now = new Date();
-      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-      const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-
-      if (timeFilter === 'today' && alertDate < today) return false;
-      if (timeFilter === 'week' && alertDate < weekAgo) return false;
-      if (timeFilter === 'month' && alertDate < monthAgo) return false;
+    
+    // Filtro de estado - incluir tanto 'high' como 'critical_high', 'low' como 'critical_low'
+    if (statusFilter !== 'all') {
+      if (statusFilter === 'high') {
+        // Incluir tanto 'high' como 'critical_high'
+        if (alert.threshold !== 'high' && alert.threshold !== 'critical_high') return false;
+      } else if (statusFilter === 'low') {
+        // Incluir tanto 'low' como 'critical_low'
+        if (alert.threshold !== 'low' && alert.threshold !== 'critical_low') return false;
+      }
     }
 
     return true;

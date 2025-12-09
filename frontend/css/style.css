@@ -1973,8 +1973,6 @@ body.fullscreen-active footer {
   padding: 2rem;
   width: 100%;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-  /* ELIMINAR min-height: 400px; */
-  /* AGREGAR: */
   display: flex;
   flex-direction: column;
 }
