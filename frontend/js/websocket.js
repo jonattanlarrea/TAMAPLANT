@@ -6,6 +6,9 @@ let reconnectAttempts = 0;
 const MAX_RECONNECT_ATTEMPTS = 5;
 const WS_URL = 'wss://tamaplant.me';
 
+// ✅ SOIL MOISTURE AUTO-CALIBRACIÓN
+let soilHistory = [];
+
 const connectionStatus = document.createElement('div');
 connectionStatus.style.cssText = `
   position: fixed;
@@ -49,16 +52,29 @@ function updateConnectionStatus(status, message) {
   }
 }
 
+// ✅ FUNCIÓN AUTO-CALIBRACIÓN SOIL MOISTURE
+function soilToPercentAdaptive(rawValue) {
+  soilHistory.push(rawValue);
+  if (soilHistory.length > 100) soilHistory.shift(); // Últimos 100 valores
+  
+  const minSoil = Math.min(...soilHistory);
+  const maxSoil = Math.max(...soilHistory);
+  const humedad = ((maxSoil - rawValue) / (maxSoil - minSoil)) * 100;
+  
+  console.log(`🟤 SOIL RAW: ${rawValue} | Min:${minSoil} Max:${maxSoil} | %: ${Math.round(humedad)}%`);
+  return Math.max(0, Math.min(100, Math.round(humedad)));
+}
+
 function normalizeSensorData(raw) {
   return {
     temperature: raw.temperature_bmp ?? null,
     soilTemperature: raw.temperature_ds18b20 ?? null,
-    humidity: raw.soil_moisture_percent ?? null,
+    humidity: raw.soil_moisture_raw ? soilToPercentAdaptive(raw.soil_moisture_raw) : null, // ✅ AUTO-CALIBRADO
     light: raw.lux ?? null,
-    pressure: raw.pressure ?? null
+    pressure: raw.pressure ?? null,
+    soilRaw: raw.soil_moisture_raw ?? null // Para debug
   };
 }
-
 
 function connectWebSocket() {
   // Verificar si se alcanzó el límite de intentos
