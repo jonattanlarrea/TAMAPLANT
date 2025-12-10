@@ -6,6 +6,9 @@ let reconnectAttempts = 0;
 const MAX_RECONNECT_ATTEMPTS = 5;
 const WS_URL = 'wss://tamaplant.me';
 
+// ✅ SOIL MOISTURE AUTO-CALIBRACIÓN
+let soilHistory = [];
+
 const connectionStatus = document.createElement('div');
 connectionStatus.style.cssText = `
   position: fixed;
@@ -49,16 +52,36 @@ function updateConnectionStatus(status, message) {
   }
 }
 
+// ✅ FUNCIÓN AUTO-CALIBRACIÓN ESTABILIZADA
+function soilToPercentAdaptive(rawValue) {
+  soilHistory.push(rawValue);
+  if (soilHistory.length > 200) soilHistory.shift(); // Más muestras = más estable
+  
+  // Usar percentil 10% y 90% (ignora picos extremos)
+  const sorted = [...soilHistory].sort((a,b) => a-b);
+  const minSoil = sorted[Math.floor(sorted.length * 0.1)];  // Percentil 10%
+  const maxSoil = sorted[Math.floor(sorted.length * 0.9)];  // Percentil 90%
+  
+  if (maxSoil === minSoil) return 50; // Evitar división por cero
+  
+  const humedad = ((maxSoil - rawValue) / (maxSoil - minSoil)) * 100;
+  const percent = Math.max(0, Math.min(100, Math.round(humedad)));
+  
+  console.log(`🟤 SOIL: ${rawValue} | Rango:[${minSoil}-${maxSoil}] | ${percent}%`);
+  return percent;
+}
+
+
 function normalizeSensorData(raw) {
   return {
     temperature: raw.temperature_bmp ?? null,
     soilTemperature: raw.temperature_ds18b20 ?? null,
-    humidity: raw.soil_moisture_percent ?? null,
+    humidity: raw.soil_moisture_raw ? soilToPercentAdaptive(raw.soil_moisture_raw) : null, // ✅ AUTO-CALIBRADO
     light: raw.lux ?? null,
-    pressure: raw.pressure ?? null
+    pressure: raw.pressure ?? null,
+    soilRaw: raw.soil_moisture_raw ?? null // Para debug
   };
 }
-
 
 function connectWebSocket() {
   // Verificar si se alcanzó el límite de intentos
