@@ -21,15 +21,15 @@ const THRESHOLDS = {
     critical_high: 30    // Peligro de deshidratación
   },
   light: {
-    min: 10000,           // Luz brillante indirecta (4-6h/día)
-    max: 50000,           // Luz intensa tolerable
-    critical_low: 5000,   // Poca luz, etiolación
-    critical_high: 70000  // Riesgo de quemaduras
+    min: 0,           // Luz brillante indirecta (4-6h/día)
+    max: 10,           // Luz intensa tolerable
+    critical_low: 0,   // Poca luz, etiolación
+    critical_high: 20  // Riesgo de quemaduras
   },
   pressure: {
-    min: 1000,            // Presión normal-baja
+    min: 900,            // Presión normal-baja
     max: 1020,            // Presión normal-alta
-    critical_low: 980,    // Baja presión (tormenta)
+    critical_low: 850,    // Baja presión (tormenta)
     critical_high: 1040   // Alta presión extrema
   }
 };

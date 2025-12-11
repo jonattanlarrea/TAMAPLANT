@@ -262,49 +262,58 @@ function updateSensorData(data) {
 
           case 'light':
             formattedValue = `${Math.floor(data[sensorType])} lux`;
+            const descriptionElementLight = sensorCard.querySelector('.sensor-description');
+            
             // Alertas críticas
-            if (data[sensorType] < 5000) {
-              sensorCard.classList.add('alert', 'critical');
-              statusElement.className = 'sensor-status critical';
-              statusElement.textContent = '⚠️ POCA LUZ';
-            } else if (data[sensorType] > 70000) {
+            if (data[sensorType] > 20) {
               sensorCard.classList.add('alert', 'critical');
               statusElement.className = 'sensor-status critical';
               statusElement.textContent = '⚠️ EXCESO';
+              descriptionElementLight.textContent = 'Luz excesiva';
             }
             // Alertas normales
-            else if (data[sensorType] < 10000 || data[sensorType] > 50000) {
+            else if (data[sensorType] > 10) {
               sensorCard.classList.add('alert');
               statusElement.className = 'sensor-status warning';
-              statusElement.textContent = 'Subóptimo';
-            } else {
+              statusElement.textContent = 'Por encima';
+              descriptionElementLight.textContent = 'Luz por encima del rango';
+            } 
+            // Normal (0-10 lux)
+            else {
               sensorCard.classList.remove('alert', 'critical');
               statusElement.className = 'sensor-status';
-              statusElement.textContent = 'Ideal';
+              statusElement.textContent = 'Normal';
+              descriptionElementLight.textContent = 'Buena exposición';
             }
             break;
 
           case 'pressure':
             formattedValue = `${parseFloat(data[sensorType]).toFixed(1)} hPa`;
+            const descriptionElementPressure = sensorCard.querySelector('.sensor-description');
+            
             // Alertas críticas
-            if (data[sensorType] < 980) {
+            if (data[sensorType] < 850) {
               sensorCard.classList.add('alert', 'critical');
               statusElement.className = 'sensor-status critical';
               statusElement.textContent = '⚠️ TORMENTA';
+              descriptionElementPressure.textContent = 'Presión muy baja';
             } else if (data[sensorType] > 1040) {
               sensorCard.classList.add('alert', 'critical');
               statusElement.className = 'sensor-status critical';
               statusElement.textContent = '⚠️ MUY ALTA';
+              descriptionElementPressure.textContent = 'Presión extremadamente alta';
             }
             // Alertas normales
-            else if (data[sensorType] < 1000 || data[sensorType] > 1020) {
+            else if (data[sensorType] < 900 || data[sensorType] > 1020) {
               sensorCard.classList.add('alert');
               statusElement.className = 'sensor-status warning';
               statusElement.textContent = 'Inestable';
+              descriptionElementPressure.textContent = 'Presión inestable';
             } else {
               sensorCard.classList.remove('alert', 'critical');
               statusElement.className = 'sensor-status';
               statusElement.textContent = 'Normal';
+              descriptionElementPressure.textContent = 'Presión normal';
             }
             break;
         }
