@@ -6,9 +6,6 @@ let reconnectAttempts = 0;
 const MAX_RECONNECT_ATTEMPTS = 5;
 const WS_URL = 'wss://tamaplant.me';
 
-// ✅ SOIL MOISTURE AUTO-CALIBRACIÓN
-let soilHistory = [];
-
 const connectionStatus = document.createElement('div');
 connectionStatus.style.cssText = `
   position: fixed;
@@ -52,31 +49,11 @@ function updateConnectionStatus(status, message) {
   }
 }
 
-// ✅ FUNCIÓN AUTO-CALIBRACIÓN ESTABILIZADA
-function soilToPercentAdaptive(rawValue) {
-  soilHistory.push(rawValue);
-  if (soilHistory.length > 200) soilHistory.shift(); // Más muestras = más estable
-  
-  // Usar percentil 10% y 90% (ignora picos extremos)
-  const sorted = [...soilHistory].sort((a,b) => a-b);
-  const minSoil = sorted[Math.floor(sorted.length * 0.1)];  // Percentil 10%
-  const maxSoil = sorted[Math.floor(sorted.length * 0.9)];  // Percentil 90%
-  
-  if (maxSoil === minSoil) return 50; // Evitar división por cero
-  
-  const humedad = ((maxSoil - rawValue) / (maxSoil - minSoil)) * 100;
-  const percent = Math.max(0, Math.min(100, Math.round(humedad)));
-  
-  console.log(`🟤 SOIL: ${rawValue} | Rango:[${minSoil}-${maxSoil}] | ${percent}%`);
-  return percent;
-}
-
-
 function normalizeSensorData(raw) {
   return {
     temperature: raw.temperature_bmp ?? null,
     soilTemperature: raw.temperature_ds18b20 ?? null,
-    humidity: raw.soil_moisture_raw ? soilToPercentAdaptive(raw.soil_moisture_raw) : null, // ✅ AUTO-CALIBRADO
+    humidity: raw.soil_moisture_percent ?? null, // ✅ MUESTRA DIRECTO soil_moisture_percent
     light: raw.lux ?? null,
     pressure: raw.pressure ?? null,
     soilRaw: raw.soil_moisture_raw ?? null // Para debug
@@ -84,7 +61,6 @@ function normalizeSensorData(raw) {
 }
 
 function connectWebSocket() {
-  // Verificar si se alcanzó el límite de intentos
   if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
     updateConnectionStatus('failed', `Conexión fallida (${MAX_RECONNECT_ATTEMPTS} intentos)`);
     console.error(`❌ Máximo de intentos de reconexión alcanzado (${MAX_RECONNECT_ATTEMPTS})`);
@@ -99,7 +75,7 @@ function connectWebSocket() {
         'Conexión Fallida',
         `No se pudo conectar después de ${MAX_RECONNECT_ATTEMPTS} intentos. Recarga la página para intentar nuevamente.`,
         'error',
-        0 // No auto-cerrar
+        0
       );
     }
 
@@ -117,7 +93,6 @@ function connectWebSocket() {
       console.log('✅ WebSocket conectado');
       updateConnectionStatus('connected', 'Conectado a ESP32');
 
-      // Resetear contador de intentos al conectar exitosamente
       reconnectAttempts = 0;
 
       if (reconnectInterval) {
@@ -187,7 +162,6 @@ function updateSensorData(data) {
         switch (sensorType) {
           case 'temperature':
             formattedValue = `${parseFloat(data[sensorType]).toFixed(1)}°C`;
-            // Alertas críticas
             if (data[sensorType] < 10) {
               sensorCard.classList.add('alert', 'critical');
               statusElement.className = 'sensor-status critical';
@@ -197,7 +171,6 @@ function updateSensorData(data) {
               statusElement.className = 'sensor-status critical';
               statusElement.textContent = '⚠️ CRÍTICO';
             }
-            // Alertas normales
             else if (data[sensorType] < 15 || data[sensorType] > 30) {
               sensorCard.classList.add('alert');
               statusElement.className = 'sensor-status warning';
@@ -211,7 +184,6 @@ function updateSensorData(data) {
 
           case 'humidity':
             formattedValue = `${Math.floor(data[sensorType])}%`;
-            // Alertas críticas
             if (data[sensorType] < 15) {
               sensorCard.classList.add('alert', 'critical');
               statusElement.className = 'sensor-status critical';
@@ -235,7 +207,6 @@ function updateSensorData(data) {
             formattedValue = `${parseFloat(data[sensorType]).toFixed(1)}°C`;
             const descriptionElement = sensorCard.querySelector('.sensor-description');
 
-            // Alertas críticas
             if (data[sensorType] < 10) {
               sensorCard.classList.add('alert', 'critical');
               statusElement.className = 'sensor-status critical';
@@ -246,7 +217,6 @@ function updateSensorData(data) {
               statusElement.textContent = '⚠️ MUY CALIENTE';
               descriptionElement.textContent = 'Suelo extremadamente caliente'
             }
-            // Alertas normales
             else if (data[sensorType] < 18 || data[sensorType] > 25) {
               sensorCard.classList.add('alert');
               statusElement.className = 'sensor-status warning';
@@ -321,7 +291,6 @@ function updateSensorData(data) {
         valueElement.textContent = formattedValue;
         valueElement.style.opacity = '1';
 
-        // Verificar umbrales y crear alerta si es necesario
         if (typeof window.checkThreshold === 'function') {
           const threshold = window.checkThreshold(sensorType, data[sensorType]);
           if (threshold && typeof window.createAlert === 'function') {
@@ -333,7 +302,6 @@ function updateSensorData(data) {
   });
 }
 
-// Funciones globales para botones
 function refreshData() {
   if (ws && ws.readyState === WebSocket.OPEN) {
     ws.send(JSON.stringify({ command: 'refresh' }));
@@ -372,7 +340,6 @@ function toggleAutoUpdate() {
   console.log('Toggle auto-actualización');
 }
 
-// Iniciar conexión y cleanup
 function initWebSocket() {
   connectWebSocket();
 
