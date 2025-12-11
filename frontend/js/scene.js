@@ -33,6 +33,7 @@ function initScene() {
 
   // Inicializar variables globales
   let loadedPlant = null;
+  let modelAura = null;
   const loadingMessage = document.querySelector('.loading-message');
 
   window.loadedPlant = loadedPlant;
@@ -40,6 +41,7 @@ function initScene() {
   window.scene = scene;
   window.camera = camera;
   window.renderer = renderer;
+  window.modelAura = modelAura;
 
   // Verificar GLTFLoader
   if (typeof THREE.GLTFLoader === 'undefined') {
@@ -81,9 +83,90 @@ function initScene() {
   camera.position.set(0, 1, 6);
   camera.lookAt(0, 0, 0);
 
-  // Animación de renderizado
+  // ========================================
+  // SISTEMA DE AURA
+  // ========================================
+  
+  // Función para crear el aura alrededor del modelo
+  window.createModelAura = function(model) {
+    // Eliminar aura anterior si existe
+    if (window.modelAura) {
+      scene.remove(window.modelAura);
+      window.modelAura.geometry.dispose();
+      window.modelAura.material.dispose();
+    }
+    
+    // Calcular el tamaño del modelo
+    const box = new THREE.Box3().setFromObject(model);
+    const size = box.getSize(new THREE.Vector3());
+    const center = box.getCenter(new THREE.Vector3());
+    const maxDim = Math.max(size.x, size.y, size.z);
+    
+    // Crear geometría del aura (esfera ligeramente más grande que el modelo)
+    const auraGeometry = new THREE.SphereGeometry(maxDim * 0.7, 32, 32);
+    
+    // Material con transparencia y brillo
+    const auraMaterial = new THREE.MeshBasicMaterial({
+      color: 0x00ff9d, // Verde por defecto (normal)
+      transparent: true,
+      opacity: 0.15,
+      side: THREE.BackSide,
+      blending: THREE.AdditiveBlending
+    });
+    
+    window.modelAura = new THREE.Mesh(auraGeometry, auraMaterial);
+    window.modelAura.position.copy(center);
+    
+    scene.add(window.modelAura);
+    
+    console.log('✨ Aura de estado creada');
+  };
+  
+  // Función para actualizar el color del aura según el estado
+  window.updateAuraColor = function(alertLevel) {
+    if (!window.modelAura) return;
+    
+    const material = window.modelAura.material;
+    
+    switch(alertLevel) {
+      case 'normal':
+        material.color.setHex(0x00ff9d); // Verde
+        material.opacity = 0.15;
+        break;
+      case 'warning':
+        material.color.setHex(0xf2c94c); // Amarillo
+        material.opacity = 0.25;
+        break;
+      case 'critical':
+        material.color.setHex(0xff6b6b); // Rojo
+        material.opacity = 0.35;
+        break;
+    }
+    
+    console.log(`🎨 Aura actualizada: ${alertLevel}`);
+  };
+  
+  // Función para eliminar el aura
+  window.removeModelAura = function() {
+    if (window.modelAura) {
+      scene.remove(window.modelAura);
+      window.modelAura.geometry.dispose();
+      window.modelAura.material.dispose();
+      window.modelAura = null;
+      console.log('🗑️ Aura eliminada');
+    }
+  };
+
+  // Animación de renderizado con pulsación del aura
   function animate() {
     requestAnimationFrame(animate);
+    
+    // Animación de pulsación del aura
+    if (window.modelAura) {
+      const scale = 1 + Math.sin(Date.now() * 0.002) * 0.08;
+      window.modelAura.scale.set(scale, scale, scale);
+    }
+    
     renderer.render(scene, camera);
   }
   animate();

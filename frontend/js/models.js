@@ -3,6 +3,11 @@ function removeCurrentModel() {
     window.scene.remove(window.loadedPlant);
     window.loadedPlant = null;
 
+    // Eliminar el aura
+    if (typeof window.removeModelAura === 'function') {
+      window.removeModelAura();
+    }
+
     // Resetear cámara a posición por defecto
     if (window.camera) {
       window.camera.position.set(0, 1, 6);
@@ -56,6 +61,13 @@ function loadNewModel(file) {
       adjustCameraForModel(scaledSize);
 
       window.scene.add(window.loadedPlant);
+      
+      // ✨ AGREGAR ESTO: Crear el aura alrededor del modelo
+      if (typeof window.createModelAura === 'function') {
+        window.createModelAura(window.loadedPlant);
+        console.log('✨ Aura creada para el modelo');
+      }
+      
       window.loadingMessage.style.display = "none";
 
       if (typeof showNotification === 'function') {

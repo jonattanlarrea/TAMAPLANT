@@ -53,10 +53,10 @@ function normalizeSensorData(raw) {
   return {
     temperature: raw.temperature_bmp ?? null,
     soilTemperature: raw.temperature_ds18b20 ?? null,
-    humidity: raw.soil_moisture_percent ?? null, // ✅ MUESTRA DIRECTO soil_moisture_percent
+    humidity: raw.soil_moisture_percent ?? null,
     light: raw.lux ?? null,
     pressure: raw.pressure ?? null,
-    soilRaw: raw.soil_moisture_raw ?? null // Para debug
+    soilRaw: raw.soil_moisture_raw ?? null
   };
 }
 
@@ -147,6 +147,9 @@ function connectWebSocket() {
 }
 
 function updateSensorData(data) {
+  let hasWarning = false;
+  let hasCritical = false;
+  
   Object.keys(data).forEach(sensorType => {
     const sensorCard = document.querySelector(`.sensor[data-sensor="${sensorType}"]`);
 
@@ -234,21 +237,18 @@ function updateSensorData(data) {
             formattedValue = `${Math.floor(data[sensorType])} lux`;
             const descriptionElementLight = sensorCard.querySelector('.sensor-description');
             
-            // Alertas críticas
             if (data[sensorType] > 20) {
               sensorCard.classList.add('alert', 'critical');
               statusElement.className = 'sensor-status critical';
               statusElement.textContent = '⚠️ EXCESO';
               descriptionElementLight.textContent = 'Luz excesiva';
             }
-            // Alertas normales
             else if (data[sensorType] > 10) {
               sensorCard.classList.add('alert');
               statusElement.className = 'sensor-status warning';
               statusElement.textContent = 'Por encima';
               descriptionElementLight.textContent = 'Luz por encima del rango';
             } 
-            // Normal (0-10 lux)
             else {
               sensorCard.classList.remove('alert', 'critical');
               statusElement.className = 'sensor-status';
@@ -261,7 +261,6 @@ function updateSensorData(data) {
             formattedValue = `${parseFloat(data[sensorType]).toFixed(1)} hPa`;
             const descriptionElementPressure = sensorCard.querySelector('.sensor-description');
             
-            // Alertas críticas
             if (data[sensorType] < 850) {
               sensorCard.classList.add('alert', 'critical');
               statusElement.className = 'sensor-status critical';
@@ -273,7 +272,6 @@ function updateSensorData(data) {
               statusElement.textContent = '⚠️ MUY ALTA';
               descriptionElementPressure.textContent = 'Presión extremadamente alta';
             }
-            // Alertas normales
             else if (data[sensorType] < 900 || data[sensorType] > 1020) {
               sensorCard.classList.add('alert');
               statusElement.className = 'sensor-status warning';
@@ -291,6 +289,13 @@ function updateSensorData(data) {
         valueElement.textContent = formattedValue;
         valueElement.style.opacity = '1';
 
+        // Detectar alertas para actualizar el aura
+        if (sensorCard.classList.contains('critical')) {
+          hasCritical = true;
+        } else if (sensorCard.classList.contains('alert')) {
+          hasWarning = true;
+        }
+
         if (typeof window.checkThreshold === 'function') {
           const threshold = window.checkThreshold(sensorType, data[sensorType]);
           if (threshold && typeof window.createAlert === 'function') {
@@ -300,6 +305,19 @@ function updateSensorData(data) {
       }, 300);
     }
   });
+  
+  // Actualizar el aura según el estado general
+  setTimeout(() => {
+    if (typeof window.updateAuraColor === 'function') {
+      if (hasCritical) {
+        window.updateAuraColor('critical');
+      } else if (hasWarning) {
+        window.updateAuraColor('warning');
+      } else {
+        window.updateAuraColor('normal');
+      }
+    }
+  }, 350);
 }
 
 function refreshData() {
